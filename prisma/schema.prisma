@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum FundType {
+  REGULAR
+  COBF
+}
+
+enum TransactionType {
+  ALLOCATION
+  EXPENSE
+}
+
+model Budget {
+  id          String   @id @default(uuid()) @db.Uuid
+  fundType    FundType
+  year        Int
+  totalAmount Decimal  @db.Decimal(15, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([fundType, year])
+}
+
+model Category {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String        @unique
+  description String?
+  color       String?       
+  transactions Transaction[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  reminders   Reminder[]
+}
+
+model Transaction {
+  id          String          @id @default(uuid()) @db.Uuid
+  amount      Decimal         @db.Decimal(15, 2)
+  description String
+  particulars String?
+  date        DateTime        @default(now())
+  type        TransactionType @default(EXPENSE)
+  fundType    FundType
+  
+  categoryId  String?         @db.Uuid
+  category    Category?       @relation(fields: [categoryId], references: [id])
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model Reminder {
+  id          String   @id @default(uuid()) @db.Uuid
+  message     String
+  date        DateTime
+  time        String?
+  isCompleted Boolean  @default(false)
+  
+  categoryId  String?  @db.Uuid
+  category    Category? @relation(fields: [categoryId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

@@ -1,0 +1,179 @@
+"use client";
+
+import { Category, FundType } from "@prisma/client";
+import { addTransaction } from "./actions";
+import { useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
+import { SuccessModal } from "../ui/success-modal";
+
+function SubmitButton({ accentColor }: { accentColor: string }) {
+  const { pending } = useFormStatus();
+
+  const colorClasses =
+    accentColor === "amber"
+      ? "bg-amber-600 hover:bg-amber-700 focus:ring-amber-500"
+      : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500";
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className={`w-full flex items-center justify-center gap-2 rounded-lg ${colorClasses} px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+    >
+      {pending ? (
+        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      ) : (
+        <>
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Submit Transaction
+        </>
+      )}
+    </button>
+  );
+}
+
+export function TransactionForm({ categories, fundType }: { categories: Category[], fundType: FundType }) {
+  const ref = useRef<HTMLFormElement>(null);
+  const [amountDisplay, setAmountDisplay] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const accentColor = fundType === "COBF" ? "amber" : "blue";
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Basic currency formatting as user types
+    let value = e.target.value.replace(/[^0-9]/g, "");
+    if (value) {
+      value = (parseInt(value, 10) / 100).toLocaleString("en-PH", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      setAmountDisplay(value);
+    } else {
+      setAmountDisplay("");
+    }
+  };
+
+  return (
+    <>
+    <form
+      ref={ref}
+      action={async (formData) => {
+        // add actual fundType dynamically
+        formData.append("fundType", fundType);
+        
+        // ensure amount is formatted correctly to send to server
+        if (amountDisplay) {
+          formData.set("amount", amountDisplay);
+        }
+
+        const res = await addTransaction(formData);
+        if (res?.success) {
+          ref.current?.reset();
+          setAmountDisplay("");
+          setShowSuccess(true);
+          setTimeout(() => setShowSuccess(false), 2000);
+        } else {
+          alert(res?.error || "An error occurred");
+        }
+      }}
+      className="space-y-5"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label htmlFor="date" className="block text-sm font-medium text-slate-700 mb-1">
+            Date
+          </label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            required
+            defaultValue={new Date().toISOString().split('T')[0]}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="categoryId" className="block text-sm font-medium text-slate-700 mb-1">
+            Transaction Type
+          </label>
+          <select
+            id="categoryId"
+            name="categoryId"
+            required
+            defaultValue=""
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm"
+          >
+            <option value="" disabled>Select a category</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="amount" className="block text-sm font-medium text-slate-700 mb-1">
+            Amount
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <span className="text-slate-500 sm:text-sm">₱</span>
+            </div>
+            <input
+              type="text"
+              id="amountDisplay"
+              value={amountDisplay}
+              onChange={handleAmountChange}
+              required
+              placeholder="0.00"
+              className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-7 pr-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">
+            Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            placeholder="Enter name"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="particulars" className="block text-sm font-medium text-slate-700 mb-1">
+          Particulars
+        </label>
+        <textarea
+          id="particulars"
+          name="particulars"
+          rows={3}
+          placeholder="Enter transaction details"
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm resize-none"
+        />
+      </div>
+
+      <div className="pt-2">
+        <SubmitButton accentColor={accentColor} />
+      </div>
+    </form>
+    <SuccessModal 
+      isOpen={showSuccess} 
+      title="Transaction Added" 
+      message="The transaction has been successfully recorded." 
+    />
+    </>
+  );
+}
