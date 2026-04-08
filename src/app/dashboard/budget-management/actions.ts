@@ -110,22 +110,27 @@ export async function updateBudget(fundType: FundType, newAmountStr: string) {
   const currentYear = new Date().getFullYear();
 
   try {
-    await prisma.budget.upsert({
+    const existingBudget = await prisma.budget.findFirst({
       where: {
-        fundType_year: {
-          fundType,
-          year: currentYear,
-        },
-      },
-      update: {
-        totalAmount: amount,
-      },
-      create: {
         fundType,
         year: currentYear,
-        totalAmount: amount,
       },
     });
+
+    if (existingBudget) {
+      await prisma.budget.update({
+        where: { id: existingBudget.id },
+        data: { totalAmount: amount },
+      });
+    } else {
+      await prisma.budget.create({
+        data: {
+          fundType,
+          year: currentYear,
+          totalAmount: amount,
+        },
+      });
+    }
 
     revalidatePath("/dashboard/budget-management");
     revalidatePath("/dashboard");
