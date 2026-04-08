@@ -66,6 +66,13 @@ export function TransactionList({
   const isCobf = accentColor === "emerald";
   const themeText = isCobf ? "text-emerald-600" : "text-blue-600";
 
+  const handleCopy = (t: Transaction) => {
+    if (window.confirm("Do you want to copy this transaction to the form?")) {
+      const event = new CustomEvent("copy-transaction", { detail: t });
+      window.dispatchEvent(event);
+    }
+  };
+
   if (transactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -93,7 +100,11 @@ export function TransactionList({
           const colorHex = tailwindToHex[t.categoryColor] || tailwindToHex["bg-slate-500"];
 
           return (
-            <div key={t.id} className="group relative overflow-hidden rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-sm">
+            <div 
+              key={t.id} 
+              onClick={() => handleCopy(t)}
+              className="group relative overflow-hidden rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-sm cursor-pointer"
+            >
               {/* Left accent border */}
               <div 
                 className="absolute left-0 top-0 bottom-0 w-1 transition-all duration-300 opacity-0 group-hover:opacity-100"
@@ -127,7 +138,10 @@ export function TransactionList({
                   {/* Action Buttons */}
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
-                      onClick={() => setEditingTransaction(t)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTransaction(t);
+                      }}
                       className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                       title="Edit transaction"
                     >
@@ -136,7 +150,8 @@ export function TransactionList({
                       </svg>
                     </button>
                     <button 
-                      onClick={async () => {
+                      onClick={async (e) => {
+                        e.stopPropagation();
                         if (confirm("Are you sure you want to delete this transaction?")) {
                           setIsDeleting(t.id);
                           const res = await deleteTransaction(t.id);
@@ -224,7 +239,14 @@ export function TransactionList({
               const percent = totalAmount > 0 ? ((t.amount / totalAmount) * 100).toFixed(1) : "0";
 
               return (
-                <div key={t.id} className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div 
+                  key={t.id} 
+                  onClick={() => {
+                    setShowAllModal(false);
+                    handleCopy(t);
+                  }}
+                  className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between cursor-pointer"
+                >
                   <div 
                     className="absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-300 opacity-70 group-hover:opacity-100 group-hover:w-2"
                     style={{ backgroundColor: colorHex }}
@@ -268,7 +290,8 @@ export function TransactionList({
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setShowAllModal(false);
                           setEditingTransaction(t);
                         }}
@@ -280,7 +303,8 @@ export function TransactionList({
                         </svg>
                       </button>
                       <button 
-                        onClick={async () => {
+                        onClick={async (e) => {
+                          e.stopPropagation();
                           if (confirm("Are you sure you want to delete this transaction?")) {
                             setIsDeleting(t.id);
                             const res = await deleteTransaction(t.id);

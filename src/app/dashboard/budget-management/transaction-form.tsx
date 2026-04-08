@@ -2,7 +2,7 @@
 
 import { Category, FundType } from "@prisma/client";
 import { addTransaction } from "./actions";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { SuccessModal } from "../ui/success-modal";
 
@@ -56,6 +56,43 @@ export function TransactionForm({ categories, fundType }: { categories: Category
       setAmountDisplay("");
     }
   };
+
+  useEffect(() => {
+    const handleCopy = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const t = customEvent.detail;
+      
+      if (ref.current) {
+        const dateInput = ref.current.elements.namedItem("date") as HTMLInputElement;
+        const categorySelect = ref.current.elements.namedItem("categoryId") as HTMLSelectElement;
+        const nameInput = ref.current.elements.namedItem("name") as HTMLInputElement;
+        const particularsInput = ref.current.elements.namedItem("particulars") as HTMLTextAreaElement;
+        
+        if (dateInput) dateInput.value = new Date(t.date).toISOString().split('T')[0];
+        if (categorySelect) categorySelect.value = t.categoryId || "";
+        if (nameInput) nameInput.value = t.description;
+        if (particularsInput) particularsInput.value = t.particulars || "";
+        
+        const formattedAmount = Number(t.amount).toLocaleString("en-PH", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        setAmountDisplay(formattedAmount);
+        
+        // Highlight form to show it copied successfully
+        ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        
+        // Optional visual flash
+        ref.current.classList.add("ring-2", "ring-emerald-500", "ring-offset-2", "transition-all", "duration-500");
+        setTimeout(() => {
+          ref.current?.classList.remove("ring-2", "ring-emerald-500", "ring-offset-2", "transition-all", "duration-500");
+        }, 1000);
+      }
+    };
+
+    window.addEventListener("copy-transaction", handleCopy);
+    return () => window.removeEventListener("copy-transaction", handleCopy);
+  }, []);
 
   return (
     <>
