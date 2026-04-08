@@ -52,6 +52,8 @@ export function TransactionList({
   const [successMessage, setSuccessMessage] = useState("");
   const [showAllModal, setShowAllModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [transactionToCopy, setTransactionToCopy] = useState<Transaction | null>(null);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const itemsPerPage = 5;
 
   const formatCurrency = (amount: number) => {
@@ -67,9 +69,14 @@ export function TransactionList({
   const themeText = isCobf ? "text-emerald-600" : "text-blue-600";
 
   const handleCopy = (t: Transaction) => {
-    if (window.confirm("Do you want to copy this transaction to the form?")) {
-      const event = new CustomEvent("copy-transaction", { detail: t });
+    setTransactionToCopy(t);
+  };
+
+  const confirmCopy = () => {
+    if (transactionToCopy) {
+      const event = new CustomEvent("copy-transaction", { detail: transactionToCopy });
       window.dispatchEvent(event);
+      setTransactionToCopy(null);
     }
   };
 
@@ -152,16 +159,7 @@ export function TransactionList({
                     <button 
                       onClick={async (e) => {
                         e.stopPropagation();
-                        if (confirm("Are you sure you want to delete this transaction?")) {
-                          setIsDeleting(t.id);
-                          const res = await deleteTransaction(t.id);
-                          setIsDeleting(null);
-                          if (res?.success) {
-                            setSuccessMessage("Transaction has been successfully deleted.");
-                            setShowSuccess(true);
-                            setTimeout(() => setShowSuccess(false), 2000);
-                          }
-                        }
+                        setTransactionToDelete(t);
                       }}
                       disabled={isDeleting === t.id}
                       className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
@@ -305,17 +303,7 @@ export function TransactionList({
                       <button 
                         onClick={async (e) => {
                           e.stopPropagation();
-                          if (confirm("Are you sure you want to delete this transaction?")) {
-                            setIsDeleting(t.id);
-                            const res = await deleteTransaction(t.id);
-                            setIsDeleting(null);
-                            if (res?.success) {
-                              setShowAllModal(false);
-                              setSuccessMessage("Transaction has been successfully deleted.");
-                              setShowSuccess(true);
-                              setTimeout(() => setShowSuccess(false), 2000);
-                            }
-                          }
+                          setTransactionToDelete(t);
                         }}
                         disabled={isDeleting === t.id}
                         className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
@@ -363,6 +351,97 @@ export function TransactionList({
               </div>
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* Copy Confirmation Modal */}
+      <Modal
+        isOpen={!!transactionToCopy}
+        onClose={() => setTransactionToCopy(null)}
+        title="Copy Transaction"
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold leading-6 text-slate-900">Copy transaction details?</h3>
+              <p className="text-sm text-slate-500 mt-1">
+                This will automatically fill the "Add Transaction" form with this transaction's details.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={confirmCopy}
+              className="inline-flex w-full justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto transition-colors"
+            >
+              Copy Details
+            </button>
+            <button
+              type="button"
+              onClick={() => setTransactionToCopy(null)}
+              className="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!transactionToDelete}
+        onClose={() => setTransactionToDelete(null)}
+        title="Delete Transaction"
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold leading-6 text-slate-900">Delete transaction</h3>
+              <p className="text-sm text-slate-500 mt-1">
+                Are you sure you want to delete this transaction? This action cannot be undone and will update your budget totals.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={async () => {
+                if (transactionToDelete) {
+                  setIsDeleting(transactionToDelete.id);
+                  const res = await deleteTransaction(transactionToDelete.id);
+                  setIsDeleting(null);
+                  if (res?.success) {
+                    setTransactionToDelete(null);
+                    setShowAllModal(false);
+                    setSuccessMessage("Transaction has been successfully deleted.");
+                    setShowSuccess(true);
+                    setTimeout(() => setShowSuccess(false), 2000);
+                  }
+                }
+              }}
+              className="inline-flex w-full justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto transition-colors"
+            >
+              {isDeleting === transactionToDelete?.id ? "Deleting..." : "Delete"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTransactionToDelete(null)}
+              className="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </Modal>
     </>
