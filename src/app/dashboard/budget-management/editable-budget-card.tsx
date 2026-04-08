@@ -12,6 +12,8 @@ export function EditableBudgetCard({
   percentSpent,
   accentColor,
   currentFund,
+  periodLabel,
+  periodKey,
 }: {
   totalAmount: number;
   remaining: number;
@@ -19,6 +21,8 @@ export function EditableBudgetCard({
   percentSpent: number;
   accentColor: string;
   currentFund: FundType;
+  periodLabel: string;
+  periodKey: string;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
@@ -65,7 +69,7 @@ export function EditableBudgetCard({
   const handleSave = async () => {
     if (!editValue) return;
     setIsSaving(true);
-    const res = await updateBudget(currentFund, editValue);
+    const res = await updateBudget(currentFund, editValue, periodKey);
     setIsSaving(false);
     if (res?.success) {
       setIsEditing(false);
@@ -100,7 +104,7 @@ export function EditableBudgetCard({
         </div>
         
         <div className="flex-1">
-          <p className="text-sm font-medium text-slate-500">Total Budget</p>
+          <p className="text-sm font-medium text-slate-500">{periodLabel} Budget</p>
           {isEditing ? (
             <div className="mt-1 flex items-center gap-2">
               <div className="relative flex-1 max-w-[200px]">

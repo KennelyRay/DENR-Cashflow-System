@@ -100,7 +100,7 @@ export async function deleteTransaction(id: string) {
   }
 }
 
-export async function updateBudget(fundType: FundType, newAmountStr: string) {
+export async function updateBudget(fundType: FundType, newAmountStr: string, periodKey: string = "annual") {
   const amount = parseFloat(newAmountStr.replace(/[^0-9.-]+/g, ""));
   
   if (isNaN(amount) || amount < 0) {
@@ -117,17 +117,28 @@ export async function updateBudget(fundType: FundType, newAmountStr: string) {
       },
     });
 
+    let updateData: any = {};
+    if (periodKey === "annual") updateData = { totalAmount: amount };
+    else if (periodKey === "q1") updateData = { q1Amount: amount };
+    else if (periodKey === "q2") updateData = { q2Amount: amount };
+    else if (periodKey === "q3") updateData = { q3Amount: amount };
+    else if (periodKey === "q4") updateData = { q4Amount: amount };
+
     if (existingBudget) {
       await prisma.budget.update({
         where: { id: existingBudget.id },
-        data: { totalAmount: amount },
+        data: updateData,
       });
     } else {
       await prisma.budget.create({
         data: {
           fundType,
           year: currentYear,
-          totalAmount: amount,
+          totalAmount: periodKey === "annual" ? amount : 0,
+          q1Amount: periodKey === "q1" ? amount : 0,
+          q2Amount: periodKey === "q2" ? amount : 0,
+          q3Amount: periodKey === "q3" ? amount : 0,
+          q4Amount: periodKey === "q4" ? amount : 0,
         },
       });
     }

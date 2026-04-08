@@ -6,6 +6,8 @@ import { EditableBudgetCard } from "./editable-budget-card";
 import { TransactionList } from "./transaction-list";
 import { SeeAllButton } from "./see-all-button";
 
+import { PeriodToggle } from "../period-toggle";
+
 export default async function BudgetManagementPage(props: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
@@ -14,6 +16,9 @@ export default async function BudgetManagementPage(props: {
   const currentFund = fundQuery === "COBF" ? FundType.COBF : FundType.REGULAR;
   const currentYear = new Date().getFullYear();
 
+  const periodQuery = searchParams?.period as string || "annual";
+  const isQuarterly = periodQuery !== "annual";
+  
   const budget = await prisma.budget.findUnique({
     where: {
       fundType_year: {
@@ -23,14 +28,36 @@ export default async function BudgetManagementPage(props: {
     },
   });
 
-  const totalAmount = budget ? Number(budget.totalAmount) : 0;
+  const fullBudget = budget ? Number(budget.totalAmount) : 0;
+  let totalAmount = fullBudget;
+  
+  if (periodQuery === "q1") totalAmount = budget ? Number(budget.q1Amount) : 0;
+  else if (periodQuery === "q2") totalAmount = budget ? Number(budget.q2Amount) : 0;
+  else if (periodQuery === "q3") totalAmount = budget ? Number(budget.q3Amount) : 0;
+  else if (periodQuery === "q4") totalAmount = budget ? Number(budget.q4Amount) : 0;
+
+  let startDate = new Date(currentYear, 0, 1);
+  let endDate = new Date(currentYear + 1, 0, 1);
+
+  if (periodQuery === "q1") {
+    endDate = new Date(currentYear, 3, 1);
+  } else if (periodQuery === "q2") {
+    startDate = new Date(currentYear, 3, 1);
+    endDate = new Date(currentYear, 6, 1);
+  } else if (periodQuery === "q3") {
+    startDate = new Date(currentYear, 6, 1);
+    endDate = new Date(currentYear, 9, 1);
+  } else if (periodQuery === "q4") {
+    startDate = new Date(currentYear, 9, 1);
+    endDate = new Date(currentYear + 1, 0, 1);
+  }
 
   const transactions = await prisma.transaction.findMany({
     where: {
       fundType: currentFund,
       date: {
-        gte: new Date(currentYear, 0, 1),
-        lt: new Date(currentYear + 1, 0, 1),
+        gte: startDate,
+        lt: endDate,
       },
     },
     include: {
@@ -79,8 +106,11 @@ export default async function BudgetManagementPage(props: {
         <p className="text-sm text-slate-500 mt-1">Track and manage your transactions</p>
       </div>
 
-      {/* Fund Toggle */}
-      <FundToggle />
+      {/* Fund and Period Toggles */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <FundToggle />
+        <PeriodToggle />
+      </div>
 
       {/* Animated Dashboard Content Wrapper */}
       <div key={currentFund} className="animate-fade-in-up space-y-6">
@@ -98,6 +128,8 @@ export default async function BudgetManagementPage(props: {
               percentSpent={percentSpent}
               accentColor={accentColor}
               currentFund={currentFund}
+              periodLabel={periodQuery === "annual" ? "Annual" : periodQuery.toUpperCase()}
+              periodKey={periodQuery}
             />
 
             {/* Add Transaction Form */}

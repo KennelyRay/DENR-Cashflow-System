@@ -31,6 +31,10 @@ model Budget {
   fundType    FundType
   year        Int
   totalAmount Decimal  @db.Decimal(15, 2)
+  q1Amount    Decimal  @default(0) @db.Decimal(15, 2)
+  q2Amount    Decimal  @default(0) @db.Decimal(15, 2)
+  q3Amount    Decimal  @default(0) @db.Decimal(15, 2)
+  q4Amount    Decimal  @default(0) @db.Decimal(15, 2)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

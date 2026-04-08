@@ -4,6 +4,7 @@ import { FundToggle } from "./fund-toggle";
 import { PeriodToggle } from "./period-toggle";
 
 import { DashboardCharts } from "./dashboard-charts";
+import { EditableBudgetCard } from "./budget-management/editable-budget-card";
 import { TransactionSummaryCard } from "./transaction-summary-card";
 import { ReminderNotification } from "./reminder-notification";
 
@@ -43,7 +44,12 @@ export default async function DashboardPage(props: {
 
   const isQuarterly = periodQuery !== "annual";
   const fullBudget = budget ? Number(budget.totalAmount) : 0;
-  const totalAmount = isQuarterly ? fullBudget / 4 : fullBudget;
+  
+  let totalAmount = fullBudget;
+  if (periodQuery === "q1") totalAmount = budget ? Number(budget.q1Amount) : 0;
+  else if (periodQuery === "q2") totalAmount = budget ? Number(budget.q2Amount) : 0;
+  else if (periodQuery === "q3") totalAmount = budget ? Number(budget.q3Amount) : 0;
+  else if (periodQuery === "q4") totalAmount = budget ? Number(budget.q4Amount) : 0;
 
   const transactions = await prisma.transaction.findMany({
     where: {
@@ -192,17 +198,16 @@ export default async function DashboardPage(props: {
         {/* Metrics Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Regular Budget */}
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div>
-            <p className="text-xs font-medium text-slate-500">{currentFund === "COBF" ? "COBF Budget" : "Regular Budget"}</p>
-            <p className="mt-1 text-xl font-bold text-slate-900">{formatCurrency(totalAmount)}</p>
-          </div>
-          <div className={`flex h-10 w-10 items-center justify-center rounded-full ${themeClasses.bgLight} ${themeClasses.text}`}>
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-          </div>
-        </div>
+        <EditableBudgetCard
+          totalAmount={totalAmount}
+          remaining={remaining}
+          totalSpent={totalSpent}
+          percentSpent={totalAmount > 0 ? (totalSpent / totalAmount) * 100 : 0}
+          accentColor={accentColor}
+          currentFund={currentFund}
+          periodLabel={periodQuery === "annual" ? "Annual" : periodQuery.toUpperCase()}
+          periodKey={periodQuery}
+        />
 
         {/* Remaining */}
         <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -266,8 +271,8 @@ export default async function DashboardPage(props: {
           </div>
         </div>
       </div>
+      </div>
     </div>
-  </div>
   );
 }
 
