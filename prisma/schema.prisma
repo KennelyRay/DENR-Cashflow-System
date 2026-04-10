@@ -14,6 +14,8 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@map("cashflow-Users")
 }
 
 enum FundType {
@@ -35,6 +37,8 @@ model BudgetProfile {
 
   budgets      Budget[]
   transactions Transaction[]
+
+  @@map("cashflow-BudgetProfiles")
 }
 
 model Budget {
@@ -52,6 +56,7 @@ model Budget {
   updatedAt   DateTime @updatedAt
 
   @@unique([profileId, fundType, year])
+  @@map("cashflow-Budgets")
 }
 
 model Category {
@@ -63,6 +68,8 @@ model Category {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   reminders   Reminder[]
+
+  @@map("cashflow-Categories")
 }
 
 model Transaction {
@@ -81,6 +88,8 @@ model Transaction {
   
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+
+  @@map("cashflow-Transactions")
 }
 
 model Reminder {
@@ -95,5 +104,7 @@ model Reminder {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("cashflow-Reminders")
 }
 

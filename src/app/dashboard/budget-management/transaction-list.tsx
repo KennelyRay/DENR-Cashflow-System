@@ -293,7 +293,7 @@ export function TransactionList({
                   />
                   <div className="flex items-center gap-4 pl-2">
                     <div 
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-slate-100 shadow-sm transition-transform group-hover:scale-105"
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-sm transition-transform group-hover:scale-105"
                       style={{ backgroundColor: `${colorHex}15`, color: colorHex }}
                     >
                       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
