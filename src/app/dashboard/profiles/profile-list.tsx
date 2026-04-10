@@ -20,6 +20,12 @@ export function ProfileList({
   const [loadingProfileId, setLoadingProfileId] = useState<string | null>(null);
   const [profileToDelete, setProfileToDelete] = useState<BudgetProfile | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil((initialProfiles.length + 1) / itemsPerPage); // +1 for the "Create New" card
+  const allItems = [{ isCreateCard: true }, ...initialProfiles];
+  const paginatedItems = allItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleSelect = async (id: string) => {
     setLoadingProfileId(id);
@@ -62,21 +68,25 @@ export function ProfileList({
   return (
     <>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Create New Card */}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="group flex h-48 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 transition-all hover:border-emerald-500 hover:bg-emerald-50"
-        >
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 transition-transform group-hover:scale-110">
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-          </div>
-          <span className="font-semibold text-slate-600 group-hover:text-emerald-700">Create New Profile</span>
-        </button>
+        {paginatedItems.map((item, index) => {
+          if ('isCreateCard' in item) {
+            return (
+              <button
+                key="create-new"
+                onClick={() => setIsModalOpen(true)}
+                className="group flex h-48 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 transition-all hover:border-emerald-500 hover:bg-emerald-50"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 transition-transform group-hover:scale-110">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-slate-600 group-hover:text-emerald-700">Create New Profile</span>
+              </button>
+            );
+          }
 
-        {/* Existing Profiles */}
-        {initialProfiles.map(p => {
+          const p = item as BudgetProfile;
           const isActive = p.id === activeProfileId;
           const isLoading = loadingProfileId === p.id;
           
@@ -139,6 +149,30 @@ export function ProfileList({
           );
         })}
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
+          <p className="text-sm text-slate-500">
+            Showing page <span className="font-medium text-slate-900">{currentPage}</span> of <span className="font-medium text-slate-900">{totalPages}</span>
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Profile" maxWidth="md" minHeight={false}>
         <form action={handleCreate} className="p-6 space-y-5">
