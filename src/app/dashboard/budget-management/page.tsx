@@ -79,6 +79,27 @@ export default async function BudgetManagementPage(props: {
     .filter((t) => t.type === TransactionType.EXPENSE)
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
+  // We need all transactions for the year to calculate quarterly spent amounts
+  let allYearTransactions = transactions;
+  if (periodQuery !== "annual") {
+    allYearTransactions = await prisma.transaction.findMany({
+      where: {
+        profileId: activeProfileId,
+        fundType: currentFund,
+        date: {
+          gte: new Date(currentYear, 0, 1),
+          lt: new Date(currentYear + 1, 0, 1),
+        },
+        type: TransactionType.EXPENSE,
+      },
+    });
+  }
+
+  const q1Spent = allYearTransactions.filter(t => t.type === TransactionType.EXPENSE && t.date.getMonth() >= 0 && t.date.getMonth() <= 2).reduce((sum, t) => sum + Number(t.amount), 0);
+  const q2Spent = allYearTransactions.filter(t => t.type === TransactionType.EXPENSE && t.date.getMonth() >= 3 && t.date.getMonth() <= 5).reduce((sum, t) => sum + Number(t.amount), 0);
+  const q3Spent = allYearTransactions.filter(t => t.type === TransactionType.EXPENSE && t.date.getMonth() >= 6 && t.date.getMonth() <= 8).reduce((sum, t) => sum + Number(t.amount), 0);
+  const q4Spent = allYearTransactions.filter(t => t.type === TransactionType.EXPENSE && t.date.getMonth() >= 9 && t.date.getMonth() <= 11).reduce((sum, t) => sum + Number(t.amount), 0);
+
   const remaining = totalAmount - totalSpent;
   const percentSpent = totalAmount > 0 ? (totalSpent / totalAmount) * 100 : 0;
 
@@ -134,6 +155,10 @@ export default async function BudgetManagementPage(props: {
               q2Amount={budget ? Number(budget.q2Amount) : 0}
               q3Amount={budget ? Number(budget.q3Amount) : 0}
               q4Amount={budget ? Number(budget.q4Amount) : 0}
+              q1Spent={q1Spent}
+              q2Spent={q2Spent}
+              q3Spent={q3Spent}
+              q4Spent={q4Spent}
               annualTotal={budget ? Number(budget.totalAmount) : 0}
             />
 

@@ -19,6 +19,10 @@ export function EditableBudgetCard({
   q2Amount,
   q3Amount,
   q4Amount,
+  q1Spent,
+  q2Spent,
+  q3Spent,
+  q4Spent,
   annualTotal,
 }: {
   totalAmount: number;
@@ -33,6 +37,10 @@ export function EditableBudgetCard({
   q2Amount?: number;
   q3Amount?: number;
   q4Amount?: number;
+  q1Spent?: number;
+  q2Spent?: number;
+  q3Spent?: number;
+  q4Spent?: number;
   annualTotal?: number;
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -96,6 +104,19 @@ export function EditableBudgetCard({
     } else {
       setErrorModal(res?.error || "An error occurred while saving the budget.");
     }
+  };
+
+  const getQuarterColorClass = (amount: number, spent: number) => {
+    if (amount === 0) return "text-slate-900";
+    if (spent === 0) return "text-slate-900"; // Full
+    
+    const remainingBudget = amount - spent;
+    const percentRemaining = remainingBudget / amount;
+    
+    if (percentRemaining >= 0.8) return "text-emerald-600"; // Green
+    if (percentRemaining >= 0.4) return "text-yellow-500"; // Yellow
+    if (percentRemaining > 0) return "text-orange-500"; // Orange
+    return "text-red-600"; // Red (Consumed)
   };
 
   return (
@@ -222,19 +243,43 @@ export function EditableBudgetCard({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
               <p className="text-xs text-slate-500">Q1 Budget</p>
-              <p className="font-semibold text-slate-900 mt-0.5">{formatCurrency(q1Amount || 0)}</p>
+              <p className={`font-bold mt-0.5 ${getQuarterColorClass(q1Amount || 0, q1Spent || 0)}`}>{formatCurrency(q1Amount || 0)}</p>
             </div>
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
               <p className="text-xs text-slate-500">Q2 Budget</p>
-              <p className="font-semibold text-slate-900 mt-0.5">{formatCurrency(q2Amount || 0)}</p>
+              <p className={`font-bold mt-0.5 ${getQuarterColorClass(q2Amount || 0, q2Spent || 0)}`}>{formatCurrency(q2Amount || 0)}</p>
             </div>
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
               <p className="text-xs text-slate-500">Q3 Budget</p>
-              <p className="font-semibold text-slate-900 mt-0.5">{formatCurrency(q3Amount || 0)}</p>
+              <p className={`font-bold mt-0.5 ${getQuarterColorClass(q3Amount || 0, q3Spent || 0)}`}>{formatCurrency(q3Amount || 0)}</p>
             </div>
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
               <p className="text-xs text-slate-500">Q4 Budget</p>
-              <p className="font-semibold text-slate-900 mt-0.5">{formatCurrency(q4Amount || 0)}</p>
+              <p className={`font-bold mt-0.5 ${getQuarterColorClass(q4Amount || 0, q4Spent || 0)}`}>{formatCurrency(q4Amount || 0)}</p>
+            </div>
+          </div>
+          
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500 border-t border-slate-100 pt-3">
+            <span className="font-semibold text-slate-700">Legend:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-slate-900"></span>
+              <span>Full</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-600"></span>
+              <span>≥ 80% Left</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-yellow-500"></span>
+              <span>≥ 40% Left</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-orange-500"></span>
+              <span>&gt; 0% Left</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-600"></span>
+              <span>Consumed</span>
             </div>
           </div>
           
