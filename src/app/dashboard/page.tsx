@@ -7,6 +7,7 @@ import { DashboardCharts } from "./dashboard-charts";
 import { EditableBudgetCard } from "./budget-management/editable-budget-card";
 import { TransactionSummaryCard } from "./transaction-summary-card";
 import { ReminderNotification } from "./reminder-notification";
+import { SummaryReportButton } from "./summary-report-button";
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -183,11 +184,23 @@ export default async function DashboardPage(props: {
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-12">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {activeProfile?.name || "Dashboard"} Dashboard
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">Overview of your budget and spending</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            {activeProfile?.name || "Dashboard"} Dashboard
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">Overview of your budget and spending</p>
+        </div>
+        <SummaryReportButton
+          profileName={activeProfile?.name || "Dashboard"}
+          fundType={currentFund}
+          periodQuery={periodQuery}
+          totalBudget={totalAmount}
+          totalSpent={totalSpent}
+          remaining={remaining}
+          transactions={detailedTransactions}
+          accentColor={accentColor}
+        />
       </div>
 
       {/* Fund and Period Toggles */}
