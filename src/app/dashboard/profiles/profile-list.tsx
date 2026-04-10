@@ -21,7 +21,9 @@ export function ProfileList({
   const [profileToDelete, setProfileToDelete] = useState<BudgetProfile | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [createdProfileName, setCreatedProfileName] = useState("");
+  const itemsPerPage = 6;
 
   const totalPages = Math.ceil((initialProfiles.length + 1) / itemsPerPage); // +1 for the "Create New" card
   const allItems = [{ isCreateCard: true }, ...initialProfiles];
@@ -45,9 +47,10 @@ export function ProfileList({
     
     if (res?.error) {
       setError(res.error);
-    } else if (res?.success) {
+    } else if (res?.success && res.profile) {
       setIsModalOpen(false);
-      router.push("/dashboard");
+      setCreatedProfileName(res.profile.name);
+      setIsSuccessModalOpen(true);
       router.refresh();
     }
   };
@@ -278,6 +281,27 @@ export function ProfileList({
               Cancel
             </button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Profile Created Successfully Modal */}
+      <Modal isOpen={isSuccessModalOpen} onClose={() => setIsSuccessModalOpen(false)} title="Success" maxWidth="md" minHeight={false}>
+        <div className="p-6 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+            <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-slate-900">Profile Created Successfully</h3>
+          <p className="mb-6 text-sm text-slate-500">
+            The profile <strong>{createdProfileName}</strong> has been created.
+          </p>
+          <button
+            onClick={() => setIsSuccessModalOpen(false)}
+            className="w-full rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-all"
+          >
+            Okay
+          </button>
         </div>
       </Modal>
     </>
