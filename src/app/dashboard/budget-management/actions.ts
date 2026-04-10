@@ -295,11 +295,17 @@ export async function updateBudget(fundType: FundType, newAmountStr: string, per
     }
 
     let updateData: any = {};
-    if (periodKey === "annual") updateData = { totalAmount: amount };
-    else if (periodKey === "q1") updateData = { q1Amount: amount };
-    else if (periodKey === "q2") updateData = { q2Amount: amount };
-    else if (periodKey === "q3") updateData = { q3Amount: amount };
-    else if (periodKey === "q4") updateData = { q4Amount: amount };
+    if (periodKey === "annual") {
+      updateData = { totalAmount: amount };
+    } else {
+      updateData = { 
+        totalAmount: newTotal, // Optional: if you want to automatically increase annual budget when a quarter is set, you could do it here, but current logic enforces quarter sum <= annual
+        q1Amount: newQ1,
+        q2Amount: newQ2,
+        q3Amount: newQ3,
+        q4Amount: newQ4,
+      };
+    }
 
     if (existingBudget) {
       await prisma.budget.update({
