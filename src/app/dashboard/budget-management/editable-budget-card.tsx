@@ -60,7 +60,10 @@ export function EditableBudgetCard({
   };
 
   const handleEditClick = () => {
-    setEditValue(totalAmount.toString());
+    setEditValue(totalAmount.toLocaleString("en-PH", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }));
     setIsEditing(true);
   };
 
