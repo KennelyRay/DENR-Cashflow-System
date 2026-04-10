@@ -241,21 +241,33 @@ export function EditableBudgetCard({
         <div className="mt-6 pt-6 border-t border-slate-100">
           <p className="text-sm font-semibold text-slate-700 mb-3">Quarterly Breakdown</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col justify-between">
               <p className="text-xs text-slate-500">Q1 Budget</p>
-              <p className={`font-bold mt-0.5 ${getQuarterColorClass(q1Amount || 0, q1Spent || 0)}`}>{formatCurrency(q1Amount || 0)}</p>
+              <div className="mt-1">
+                <p className={`font-bold ${getQuarterColorClass(q1Amount || 0, q1Spent || 0)}`}>{formatCurrency((q1Amount || 0) - (q1Spent || 0))}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5 border-t border-slate-200 pt-0.5">of {formatCurrency(q1Amount || 0)}</p>
+              </div>
             </div>
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col justify-between">
               <p className="text-xs text-slate-500">Q2 Budget</p>
-              <p className={`font-bold mt-0.5 ${getQuarterColorClass(q2Amount || 0, q2Spent || 0)}`}>{formatCurrency(q2Amount || 0)}</p>
+              <div className="mt-1">
+                <p className={`font-bold ${getQuarterColorClass(q2Amount || 0, q2Spent || 0)}`}>{formatCurrency((q2Amount || 0) - (q2Spent || 0))}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5 border-t border-slate-200 pt-0.5">of {formatCurrency(q2Amount || 0)}</p>
+              </div>
             </div>
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col justify-between">
               <p className="text-xs text-slate-500">Q3 Budget</p>
-              <p className={`font-bold mt-0.5 ${getQuarterColorClass(q3Amount || 0, q3Spent || 0)}`}>{formatCurrency(q3Amount || 0)}</p>
+              <div className="mt-1">
+                <p className={`font-bold ${getQuarterColorClass(q3Amount || 0, q3Spent || 0)}`}>{formatCurrency((q3Amount || 0) - (q3Spent || 0))}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5 border-t border-slate-200 pt-0.5">of {formatCurrency(q3Amount || 0)}</p>
+              </div>
             </div>
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col justify-between">
               <p className="text-xs text-slate-500">Q4 Budget</p>
-              <p className={`font-bold mt-0.5 ${getQuarterColorClass(q4Amount || 0, q4Spent || 0)}`}>{formatCurrency(q4Amount || 0)}</p>
+              <div className="mt-1">
+                <p className={`font-bold ${getQuarterColorClass(q4Amount || 0, q4Spent || 0)}`}>{formatCurrency((q4Amount || 0) - (q4Spent || 0))}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5 border-t border-slate-200 pt-0.5">of {formatCurrency(q4Amount || 0)}</p>
+              </div>
             </div>
           </div>
           

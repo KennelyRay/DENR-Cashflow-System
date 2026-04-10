@@ -71,7 +71,7 @@ export function SummaryReportButton({
       </button>
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Summary Report" maxWidth="4xl">
-        <div className="p-4 sm:p-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200 print:shadow-none print:border-0 max-h-[70vh] overflow-y-auto">
+        <div className="p-4 sm:p-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200 print:shadow-none print:border-0 max-h-[70vh] overflow-y-auto print:max-h-none print:overflow-visible">
           
           <div className="flex justify-end mb-4 print:hidden">
             <button 
@@ -86,26 +86,39 @@ export function SummaryReportButton({
           </div>
 
           {/* Document Header */}
-          <div className="text-center mb-8 border-b border-slate-300 pb-6">
-            <h1 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-widest text-slate-900">Cashflow Summary Report</h1>
-            <p className="text-slate-600 mt-2 text-sm sm:text-base font-medium">
+          <div className="text-center mb-6 border-b border-slate-300 pb-4 flex flex-col items-center">
+            {/* Added real DENR logo below */}
+            <div className="mb-3">
+              <img 
+                src="/denr-logo.png" 
+                alt="DENR Logo" 
+                className="w-20 h-20 object-contain"
+                onError={(e) => {
+                  // Fallback to text if image not found
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = '<div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200"><span class="text-xs font-bold text-slate-500">DENR</span></div>';
+                }}
+              />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-extrabold uppercase tracking-widest text-slate-900">Cashflow Summary Report</h1>
+            <p className="text-slate-600 mt-1 text-xs sm:text-sm font-medium">
               {profileName} • {fundType === "COBF" ? "Continuing Budget Fund" : "Regular Budget"} • {periodQuery === "annual" ? "Annual" : periodQuery.toUpperCase()}
             </p>
           </div>
 
           {/* Document Summary Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-10">
-            <div className="bg-slate-50 p-4 rounded-lg text-center border border-slate-200">
-              <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Total Budget</div>
-              <div className="text-lg sm:text-xl font-bold text-slate-900">{formatCurrency(totalBudget)}</div>
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="bg-slate-50 p-3 rounded-lg text-center border border-slate-200">
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Total Budget</div>
+              <div className="text-base sm:text-lg font-bold text-slate-900">{formatCurrency(totalBudget)}</div>
             </div>
-            <div className="bg-slate-50 p-4 rounded-lg text-center border border-slate-200">
-              <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Total Spent</div>
-              <div className="text-lg sm:text-xl font-bold text-red-600">{formatCurrency(totalSpent)}</div>
+            <div className="bg-slate-50 p-3 rounded-lg text-center border border-slate-200">
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Total Spent</div>
+              <div className="text-base sm:text-lg font-bold text-red-600">{formatCurrency(totalSpent)}</div>
             </div>
-            <div className="bg-slate-50 p-4 rounded-lg text-center border border-slate-200">
-              <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Remaining</div>
-              <div className="text-lg sm:text-xl font-bold text-emerald-600">{formatCurrency(remaining)}</div>
+            <div className="bg-slate-50 p-3 rounded-lg text-center border border-slate-200">
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Remaining</div>
+              <div className="text-base sm:text-lg font-bold text-emerald-600">{formatCurrency(remaining)}</div>
             </div>
           </div>
 
@@ -115,32 +128,32 @@ export function SummaryReportButton({
               No transactions found for this period.
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-6">
               {sortedCategories.map(([catName, data]) => (
-                <div key={catName} className="break-inside-avoid">
-                  <div className="flex justify-between items-end border-b-2 border-slate-800 pb-2 mb-4">
-                    <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">{catName}</h3>
-                    <p className="font-bold text-slate-900">{formatCurrency(data.amount)}</p>
+                <div key={catName} className="break-inside-avoid mb-6">
+                  <div className="flex justify-between items-end border-b border-slate-800 pb-1.5 mb-2">
+                    <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{catName}</h3>
+                    <p className="text-sm font-bold text-slate-900">{formatCurrency(data.amount)}</p>
                   </div>
-                  <table className="w-full text-sm">
+                  <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-slate-200 text-left text-slate-500">
-                        <th className="py-2 font-semibold w-1/4">Date</th>
-                        <th className="py-2 font-semibold w-1/2">Description</th>
-                        <th className="py-2 font-semibold text-right w-1/4">Amount</th>
+                        <th className="py-1.5 font-semibold w-[20%]">Date</th>
+                        <th className="py-1.5 font-semibold w-[55%]">Description</th>
+                        <th className="py-1.5 font-semibold text-right w-[25%]">Amount</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.items.map(t => (
                         <tr key={t.id} className="border-b border-slate-100 last:border-0">
-                          <td className="py-2.5 text-slate-600 align-top">
+                          <td className="py-1.5 text-slate-600 align-top">
                             {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </td>
-                          <td className="py-2.5 text-slate-900 align-top">
+                          <td className="py-1.5 text-slate-900 align-top">
                             <span className="font-medium">{t.description}</span>
-                            {t.particulars && <span className="block text-xs text-slate-500 mt-0.5">{t.particulars}</span>}
+                            {t.particulars && <span className="block text-[10px] text-slate-500 mt-0.5">{t.particulars}</span>}
                           </td>
-                          <td className="py-2.5 text-right font-medium text-slate-700 align-top">
+                          <td className="py-1.5 text-right font-medium text-slate-700 align-top">
                             {formatCurrency(t.amount)}
                           </td>
                         </tr>

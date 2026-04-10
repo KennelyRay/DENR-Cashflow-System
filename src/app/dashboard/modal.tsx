@@ -56,8 +56,8 @@ export function Modal({ isOpen, onClose, title, headerRight, maxWidth = "5xl", m
       />
       
       {/* Modal Content - Floating over the entire screen */}
-      <div className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} rounded-3xl bg-white shadow-2xl animate-fade-in-up m-4 max-h-[90vh] flex flex-col border border-slate-100 overflow-hidden`}>
-        <div className="flex items-center justify-between px-6 py-5 sm:px-8 sm:py-6 border-b border-slate-100 bg-slate-50/50">
+      <div className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} rounded-3xl bg-white shadow-2xl animate-fade-in-up m-4 max-h-[90vh] flex flex-col border border-slate-100 overflow-hidden print:max-h-none print:shadow-none print:border-none print:rounded-none print:m-0 print:w-full print:max-w-none`}>
+        <div className="flex items-center justify-between px-6 py-5 sm:px-8 sm:py-6 border-b border-slate-100 bg-slate-50/50 print:hidden">
           <div className="flex items-center gap-4">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">{title}</h2>
             {headerRight}
@@ -72,7 +72,7 @@ export function Modal({ isOpen, onClose, title, headerRight, maxWidth = "5xl", m
           </button>
         </div>
         
-        <div className={`flex-1 overflow-hidden ${minHeight ? 'min-h-[400px]' : ''} p-6 sm:p-8 bg-slate-50/30`}>
+        <div className={`flex-1 overflow-hidden ${minHeight ? 'min-h-[400px]' : ''} p-6 sm:p-8 bg-slate-50/30 print:overflow-visible print:bg-white print:p-0 print:m-0`}>
           {children}
         </div>
       </div>
