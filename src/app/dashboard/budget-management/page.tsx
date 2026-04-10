@@ -8,20 +8,36 @@ import { SeeAllButton } from "./see-all-button";
 
 import { PeriodToggle } from "../period-toggle";
 
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
 export default async function BudgetManagementPage(props: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const activeProfileId = (await cookies()).get("denr_active_profile")?.value;
+  if (!activeProfileId) {
+    redirect("/dashboard/profiles");
+  }
+
   const searchParams = await props.searchParams;
   const fundQuery = searchParams?.fund as string;
   const currentFund = fundQuery === "COBF" ? FundType.COBF : FundType.REGULAR;
   const currentYear = new Date().getFullYear();
 
-  const periodQuery = searchParams?.period as string || "annual";
+  // Calculate current quarter dynamically
+  const currentMonth = new Date().getMonth();
+  let defaultQuarter = "q1";
+  if (currentMonth >= 3 && currentMonth <= 5) defaultQuarter = "q2";
+  else if (currentMonth >= 6 && currentMonth <= 8) defaultQuarter = "q3";
+  else if (currentMonth >= 9) defaultQuarter = "q4";
+
+  const periodQuery = searchParams?.period as string || defaultQuarter;
   const isQuarterly = periodQuery !== "annual";
   
   const budget = await prisma.budget.findUnique({
     where: {
-      fundType_year: {
+      profileId_fundType_year: {
+        profileId: activeProfileId,
         fundType: currentFund,
         year: currentYear,
       },
@@ -54,6 +70,7 @@ export default async function BudgetManagementPage(props: {
 
   const transactions = await prisma.transaction.findMany({
     where: {
+      profileId: activeProfileId,
       fundType: currentFund,
       date: {
         gte: startDate,
@@ -130,6 +147,10 @@ export default async function BudgetManagementPage(props: {
               currentFund={currentFund}
               periodLabel={periodQuery === "annual" ? "Annual" : periodQuery.toUpperCase()}
               periodKey={periodQuery}
+              q1Amount={budget ? Number(budget.q1Amount) : 0}
+              q2Amount={budget ? Number(budget.q2Amount) : 0}
+              q3Amount={budget ? Number(budget.q3Amount) : 0}
+              q4Amount={budget ? Number(budget.q4Amount) : 0}
             />
 
             {/* Add Transaction Form */}

@@ -6,6 +6,7 @@ import { useRef, useState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { Modal } from "../modal";
 
+
 type ReminderWithCategory = Reminder & {
   category?: Category | null;
 };
@@ -51,6 +52,7 @@ export function RemindersClient({
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [deletingReminderId, setDeletingReminderId] = useState<string | null>(null);
+  const [errorModal, setErrorModal] = useState<string | null>(null);
 
   useEffect(() => {
     // Update current time every 10 seconds to check for due reminders
@@ -70,7 +72,7 @@ export function RemindersClient({
   const handleAdd = async (formData: FormData) => {
     const res = await addReminder(formData);
     if (res?.error) {
-      alert(res.error);
+      setErrorModal(res.error);
     } else {
       ref.current?.reset();
     }
@@ -412,6 +414,8 @@ export function RemindersClient({
         isOpen={!!deletingReminderId}
         onClose={() => setDeletingReminderId(null)}
         title="Delete Reminder"
+        maxWidth="md"
+        minHeight={false}
       >
         <div className="p-6">
           <div className="flex items-center gap-4 mb-6">
@@ -450,6 +454,30 @@ export function RemindersClient({
         </div>
       </Modal>
 
+      <Modal isOpen={!!errorModal} onClose={() => setErrorModal(null)} title="Reminder Failed" maxWidth="md" minHeight={false}>
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold leading-6 text-slate-900">Unable to add reminder</h3>
+              <p className="text-sm text-slate-500 mt-1">{errorModal}</p>
+            </div>
+          </div>
+          <div className="flex sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={() => setErrorModal(null)}
+              className="inline-flex w-full justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

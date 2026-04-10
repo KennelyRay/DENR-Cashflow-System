@@ -5,6 +5,7 @@ import { addTransaction } from "./actions";
 import { useRef, useState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { SuccessModal } from "../ui/success-modal";
+import { Modal } from "../modal";
 
 function SubmitButton({ accentColor }: { accentColor: string }) {
   const { pending } = useFormStatus();
@@ -42,6 +43,8 @@ export function TransactionForm({ categories, fundType }: { categories: Category
   const [amountDisplay, setAmountDisplay] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const accentColor = fundType === "COBF" ? "amber" : "blue";
+
+  const [errorModal, setErrorModal] = useState<string | null>(null);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Basic currency formatting as user types
@@ -114,7 +117,7 @@ export function TransactionForm({ categories, fundType }: { categories: Category
           setShowSuccess(true);
           setTimeout(() => setShowSuccess(false), 2000);
         } else {
-          alert(res?.error || "An error occurred");
+          setErrorModal(res?.error || "An error occurred");
         }
       }}
       className="space-y-5"
@@ -211,6 +214,31 @@ export function TransactionForm({ categories, fundType }: { categories: Category
       title="Transaction Added" 
       message="The transaction has been successfully recorded." 
     />
+
+    <Modal isOpen={!!errorModal} onClose={() => setErrorModal(null)} title="Transaction Failed" maxWidth="md" minHeight={false}>
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold leading-6 text-slate-900">Unable to add transaction</h3>
+              <p className="text-sm text-slate-500 mt-1">{errorModal}</p>
+            </div>
+          </div>
+          <div className="flex sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={() => setErrorModal(null)}
+              className="inline-flex w-full justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

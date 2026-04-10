@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FundType } from "@prisma/client";
 import { updateBudget } from "./actions";
 import { SuccessModal } from "../ui/success-modal";
+import { Modal } from "../modal";
 
 export function EditableBudgetCard({
   totalAmount,
@@ -14,6 +15,10 @@ export function EditableBudgetCard({
   currentFund,
   periodLabel,
   periodKey,
+  q1Amount,
+  q2Amount,
+  q3Amount,
+  q4Amount,
 }: {
   totalAmount: number;
   remaining: number;
@@ -23,11 +28,17 @@ export function EditableBudgetCard({
   currentFund: FundType;
   periodLabel: string;
   periodKey: string;
+  q1Amount?: number;
+  q2Amount?: number;
+  q3Amount?: number;
+  q4Amount?: number;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const [errorModal, setErrorModal] = useState<string | null>(null);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PH", {
@@ -76,7 +87,7 @@ export function EditableBudgetCard({
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
     } else {
-      alert(res?.error || "An error occurred while saving the budget.");
+      setErrorModal(res?.error || "An error occurred while saving the budget.");
     }
   };
 
@@ -99,7 +110,7 @@ export function EditableBudgetCard({
       <div className="flex items-center gap-4">
         <div className={`flex h-12 w-12 items-center justify-center rounded-full ${themeClasses.bgLight} ${themeClasses.text}`}>
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V5.625c0-.621-.504-1.125-1.125-1.125H5.25C4.629 4.5 4.125 5.004 4.125 5.625V9m2.25-2.25h5.25m-5.25 0a2.25 2.25 0 01-2.25-2.25h15a2.25 2.25 0 01-2.25 2.25h-5.25" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         
@@ -171,12 +182,61 @@ export function EditableBudgetCard({
           <p className="mt-2 text-right text-xs text-slate-500">{percentSpent.toFixed(1)}% spent</p>
         </div>
       </div>
+
+      {periodKey === "annual" && (
+        <div className="mt-6 pt-6 border-t border-slate-100">
+          <p className="text-sm font-semibold text-slate-700 mb-3">Quarterly Breakdown</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+              <p className="text-xs text-slate-500">Q1 Budget</p>
+              <p className="font-semibold text-slate-900 mt-0.5">{formatCurrency(q1Amount || 0)}</p>
+            </div>
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+              <p className="text-xs text-slate-500">Q2 Budget</p>
+              <p className="font-semibold text-slate-900 mt-0.5">{formatCurrency(q2Amount || 0)}</p>
+            </div>
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+              <p className="text-xs text-slate-500">Q3 Budget</p>
+              <p className="font-semibold text-slate-900 mt-0.5">{formatCurrency(q3Amount || 0)}</p>
+            </div>
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+              <p className="text-xs text-slate-500">Q4 Budget</p>
+              <p className="font-semibold text-slate-900 mt-0.5">{formatCurrency(q4Amount || 0)}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     <SuccessModal 
       isOpen={showSuccess} 
       title="Budget Updated" 
       message={`The total budget for ${currentFund} has been updated successfully.`} 
     />
+
+      <Modal isOpen={!!errorModal} onClose={() => setErrorModal(null)} title="Invalid Budget" maxWidth="md" minHeight={false}>
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold leading-6 text-slate-900">Unable to save budget</h3>
+              <p className="text-sm text-slate-500 mt-1">{errorModal}</p>
+            </div>
+          </div>
+          <div className="flex sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={() => setErrorModal(null)}
+              className="inline-flex w-full justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

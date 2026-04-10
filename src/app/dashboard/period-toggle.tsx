@@ -6,8 +6,16 @@ import { usePathname, useSearchParams } from "next/navigation";
 export function PeriodToggle() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentPeriod = searchParams.get("period") || "annual";
   const fund = searchParams.get("fund") || "REGULAR";
+  
+  // Calculate current quarter dynamically
+  const currentMonth = new Date().getMonth();
+  let defaultQuarter = "q1";
+  if (currentMonth >= 3 && currentMonth <= 5) defaultQuarter = "q2";
+  else if (currentMonth >= 6 && currentMonth <= 8) defaultQuarter = "q3";
+  else if (currentMonth >= 9) defaultQuarter = "q4";
+
+  const currentPeriod = searchParams.get("period") || defaultQuarter;
 
   const periods = [
     { id: "annual", label: "Annually" },

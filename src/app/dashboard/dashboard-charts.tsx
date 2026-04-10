@@ -49,13 +49,29 @@ type TransactionData = {
 };
 
 export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend", transactions, accentColor, categories }: { data: CategoryData[], dailyData: DailyData[], trendLabel?: string, transactions: TransactionData[], accentColor: string, categories?: Category[] }) {
-  const [activeModal, setActiveModal] = useState<"pie" | "bar" | "line" | null>(null);
+  const [activeModal, setActiveModal] = useState<"pie" | "bar" | "line" | "list" | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<TransactionData | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterQuarter, setFilterQuarter] = useState<string>("all");
   const itemsPerPage = 5;
+
+  const filteredTransactions = transactions.filter(t => {
+    if (filterQuarter === "all") return true;
+    
+    const date = new Date(t.date);
+    const month = date.getMonth(); // 0-11
+    
+    if (filterQuarter === "q1") return month >= 0 && month <= 2;
+    if (filterQuarter === "q2") return month >= 3 && month <= 5;
+    if (filterQuarter === "q3") return month >= 6 && month <= 8;
+    if (filterQuarter === "q4") return month >= 9 && month <= 11;
+    
+    return true;
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PH", {
@@ -78,15 +94,15 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
       <button 
         data-charts-trigger="true" 
         className="hidden" 
-        onClick={() => setActiveModal("pie")} 
+        onClick={() => setActiveModal("list")} 
         aria-hidden="true"
       />
       <div className="grid gap-6 lg:grid-cols-2 mb-6">
         {/* Spending Category - Pie Chart */}
-      <div 
-        className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-slate-300"
-        onClick={() => setActiveModal("pie")}
-      >
+        <div 
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-slate-300"
+          onClick={() => setActiveModal("list")}
+        >
         <h2 className="text-lg font-semibold text-slate-900">Spending by Category</h2>
         <p className="mt-1 text-xs text-slate-500">Click to enlarge</p>
         <div className="mt-6 flex h-64 items-center justify-center">
@@ -128,7 +144,7 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
       {/* Category Breakdown - Bar Chart */}
       <div 
         className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-slate-300"
-        onClick={() => setActiveModal("bar")}
+        onClick={() => setActiveModal("list")}
       >
         <h2 className="text-lg font-semibold text-slate-900">Category Breakdown</h2>
         <p className="mt-1 text-xs text-slate-500">Click to enlarge</p>
@@ -172,7 +188,7 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
       {/* Daily Spending Line Chart */}
       <div 
         className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-slate-300 lg:col-span-2"
-        onClick={() => setActiveModal("line")}
+        onClick={() => setActiveModal("list")}
       >
         <h2 className="text-lg font-semibold text-slate-900">{trendLabel}</h2>
         <p className="mt-1 text-xs text-slate-500">Click to enlarge</p>
@@ -244,31 +260,49 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
       />
 
       <Modal
-        isOpen={activeModal === "pie" || activeModal === "bar"}
+        isOpen={activeModal === "list"}
         onClose={() => {
           setActiveModal(null);
           setCurrentPage(1);
+          setFilterQuarter("all");
         }}
         title="Transaction List"
         headerRight={
-          transactions && transactions.length > 0 ? (
-            <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full border border-emerald-100 shadow-sm">
-              <span className="text-sm font-semibold">Total:</span>
-              <span className="text-base font-bold">
-                {formatCurrency(transactions.reduce((sum, t) => sum + t.amount, 0))}
-              </span>
-            </div>
-          ) : null
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mt-2 sm:mt-0 w-full sm:w-auto">
+            <select
+              value={filterQuarter}
+              onChange={(e) => {
+                setFilterQuarter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="block w-full sm:w-auto rounded-lg border-0 py-1.5 pl-3 pr-8 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-emerald-600 sm:text-sm sm:leading-6 bg-white"
+            >
+              <option value="all">All Quarters</option>
+              <option value="q1">Q1 (Jan-Mar)</option>
+              <option value="q2">Q2 (Apr-Jun)</option>
+              <option value="q3">Q3 (Jul-Sep)</option>
+              <option value="q4">Q4 (Oct-Dec)</option>
+            </select>
+
+            {filteredTransactions && filteredTransactions.length > 0 ? (
+              <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full border border-emerald-100 shadow-sm shrink-0">
+                <span className="text-sm font-semibold">Total:</span>
+                <span className="text-base font-bold">
+                  {formatCurrency(filteredTransactions.reduce((sum, t) => sum + t.amount, 0))}
+                </span>
+              </div>
+            ) : null}
+          </div>
         }
       >
         <div className="h-full w-full flex flex-col pr-2 pb-4">
-          {transactions && transactions.length > 0 ? (
+          {filteredTransactions && filteredTransactions.length > 0 ? (
             <>
               <div className="flex flex-col gap-3 flex-1 overflow-y-auto min-h-[300px]">
-                {transactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((t) => {
+                {filteredTransactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((t) => {
                   const colorHex = tailwindToHex[t.categoryColor as keyof typeof tailwindToHex] || tailwindToHex["bg-slate-500"];
                   const isCobf = accentColor === "emerald";
-                const totalAmount = transactions.reduce((sum, tr) => sum + tr.amount, 0);
+                const totalAmount = filteredTransactions.reduce((sum, tr) => sum + tr.amount, 0);
                 const percent = totalAmount > 0 ? ((t.amount / totalAmount) * 100).toFixed(1) : "0";
                 
                 return (
@@ -335,16 +369,7 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
                         </button>
                         <button 
                           onClick={async () => {
-                            if (confirm("Are you sure you want to delete this transaction?")) {
-                              setIsDeleting(t.id);
-                              const res = await deleteTransaction(t.id);
-                              setIsDeleting(null);
-                              if (res?.success) {
-                                setSuccessMessage("Transaction has been successfully deleted.");
-                                setShowSuccess(true);
-                                setTimeout(() => setShowSuccess(false), 2000);
-                              }
-                            }
+                            setTransactionToDelete(t.id);
                           }}
                           disabled={isDeleting === t.id}
                           className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
@@ -369,10 +394,10 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
               </div>
               
               {/* Pagination Controls */}
-              {transactions.length > itemsPerPage && (
+              {filteredTransactions.length > itemsPerPage && (
                 <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-4">
                   <p className="text-sm text-slate-500">
-                    Showing <span className="font-medium text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-slate-900">{Math.min(currentPage * itemsPerPage, transactions.length)}</span> of <span className="font-medium text-slate-900">{transactions.length}</span> results
+                    Showing <span className="font-medium text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-slate-900">{Math.min(currentPage * itemsPerPage, filteredTransactions.length)}</span> of <span className="font-medium text-slate-900">{filteredTransactions.length}</span> results
                   </p>
                   <div className="flex gap-2">
                     <button
@@ -383,8 +408,8 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
                       Previous
                     </button>
                     <button
-                      onClick={() => setCurrentPage(p => Math.min(Math.ceil(transactions.length / itemsPerPage), p + 1))}
-                      disabled={currentPage >= Math.ceil(transactions.length / itemsPerPage)}
+                      onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredTransactions.length / itemsPerPage), p + 1))}
+                      disabled={currentPage >= Math.ceil(filteredTransactions.length / itemsPerPage)}
                       className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Next
@@ -447,6 +472,57 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
           ) : (
             <p className="text-slate-400">No data available</p>
           )}
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!transactionToDelete}
+        onClose={() => setTransactionToDelete(null)}
+        title="Delete Transaction"
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold leading-6 text-slate-900">Delete transaction</h3>
+              <p className="text-sm text-slate-500 mt-1">
+                Are you sure you want to delete this transaction? This action cannot be undone and will update your budget totals.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={async () => {
+                if (transactionToDelete) {
+                  setIsDeleting(transactionToDelete);
+                  const res = await deleteTransaction(transactionToDelete);
+                  setIsDeleting(null);
+                  if (res?.success) {
+                    setTransactionToDelete(null);
+                    setSuccessMessage("Transaction has been successfully deleted.");
+                    setShowSuccess(true);
+                    setTimeout(() => setShowSuccess(false), 2000);
+                  }
+                }
+              }}
+              className="inline-flex w-full justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto transition-colors"
+            >
+              {isDeleting === transactionToDelete ? "Deleting..." : "Delete"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTransactionToDelete(null)}
+              className="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </Modal>
     </>

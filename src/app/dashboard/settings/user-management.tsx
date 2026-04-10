@@ -41,6 +41,8 @@ export function UserManagement({ users, currentUserId }: { users: User[], curren
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorModal, setErrorModal] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const router = useRouter();
 
   const handleSuccess = (message: string) => {
@@ -111,18 +113,7 @@ export function UserManagement({ users, currentUserId }: { users: User[], curren
                 </button>
                 {user.id !== currentUserId && (
                   <button
-                    onClick={async () => {
-                      if (confirm(`Are you sure you want to delete the user "${user.username}"?`)) {
-                        setIsDeleting(user.id);
-                        const res = await deleteUser(user.id);
-                        setIsDeleting(null);
-                        if (res?.success) {
-                          handleSuccess("User deleted successfully.");
-                        } else {
-                          alert(res?.error || "Failed to delete user");
-                        }
-                      }
-                    }}
+                    onClick={() => setUserToDelete(user)}
                     disabled={isDeleting === user.id}
                     className="flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
                     title="Delete User"
@@ -293,11 +284,78 @@ export function UserManagement({ users, currentUserId }: { users: User[], curren
         </Modal>
       )}
 
-      <SuccessModal 
-        isOpen={showSuccess} 
-        title="Success" 
-        message={successMessage} 
-      />
+      {/* Delete User Modal */}
+      <Modal isOpen={!!userToDelete} onClose={() => setUserToDelete(null)} title="Delete User" maxWidth="md" minHeight={false}>
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold leading-6 text-slate-900">Delete {userToDelete?.username}?</h3>
+              <p className="text-sm text-slate-500 mt-1">This action cannot be undone.</p>
+            </div>
+          </div>
+          <div className="flex gap-3 sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={async () => {
+                if (userToDelete) {
+                  setIsDeleting(userToDelete.id);
+                  const res = await deleteUser(userToDelete.id);
+                  setIsDeleting(null);
+                  if (res?.success) {
+                    setUserToDelete(null);
+                    handleSuccess("User deleted successfully.");
+                  } else {
+                    setErrorModal(res?.error || "Failed to delete user");
+                  }
+                }
+              }}
+              className="inline-flex w-full justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto transition-colors"
+            >
+              {isDeleting === userToDelete?.id ? "Deleting..." : "Delete"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setUserToDelete(null)}
+              className="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal isOpen={!!errorModal} onClose={() => setErrorModal(null)} title="Action Failed" maxWidth="md" minHeight={false}>
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold leading-6 text-slate-900">An error occurred</h3>
+              <p className="text-sm text-slate-500 mt-1">{errorModal}</p>
+            </div>
+          </div>
+          <div className="flex sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={() => setErrorModal(null)}
+              className="inline-flex w-full justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <SuccessModal isOpen={showSuccess} title="Success" message={successMessage} />
     </>
   );
 }

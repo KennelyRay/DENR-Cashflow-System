@@ -8,14 +8,35 @@ import { EditableBudgetCard } from "./budget-management/editable-budget-card";
 import { TransactionSummaryCard } from "./transaction-summary-card";
 import { ReminderNotification } from "./reminder-notification";
 
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
 export default async function DashboardPage(props: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const activeProfileId = (await cookies()).get("denr_active_profile")?.value;
+  
+  if (!activeProfileId) {
+    redirect("/dashboard/profiles");
+  }
+
+  const activeProfile = await prisma.budgetProfile.findUnique({
+    where: { id: activeProfileId }
+  });
+
   const searchParams = await props.searchParams;
   const fundQuery = searchParams?.fund as string;
   const currentFund = fundQuery === "COBF" ? FundType.COBF : FundType.REGULAR;
-  const periodQuery = searchParams?.period as string || "annual";
   const currentYear = new Date().getFullYear();
+
+  // Calculate current quarter dynamically
+  const currentMonth = new Date().getMonth();
+  let defaultQuarter = "q1";
+  if (currentMonth >= 3 && currentMonth <= 5) defaultQuarter = "q2";
+  else if (currentMonth >= 6 && currentMonth <= 8) defaultQuarter = "q3";
+  else if (currentMonth >= 9) defaultQuarter = "q4";
+
+  const periodQuery = searchParams?.period as string || defaultQuarter;
 
   let startDate = new Date(currentYear, 0, 1);
   let endDate = new Date(currentYear + 1, 0, 1);
@@ -35,7 +56,8 @@ export default async function DashboardPage(props: {
 
   const budget = await prisma.budget.findUnique({
     where: {
-      fundType_year: {
+      profileId_fundType_year: {
+        profileId: activeProfileId,
         fundType: currentFund,
         year: currentYear,
       },
@@ -53,6 +75,7 @@ export default async function DashboardPage(props: {
 
   const transactions = await prisma.transaction.findMany({
     where: {
+      profileId: activeProfileId,
       fundType: currentFund,
       date: {
         gte: startDate,
@@ -180,7 +203,7 @@ export default async function DashboardPage(props: {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Dashboard
+          {activeProfile?.name || "Dashboard"} Dashboard
         </h1>
         <p className="text-sm text-slate-500 mt-1">Overview of your budget and spending</p>
       </div>
@@ -198,16 +221,17 @@ export default async function DashboardPage(props: {
         {/* Metrics Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Regular Budget */}
-        <EditableBudgetCard
-          totalAmount={totalAmount}
-          remaining={remaining}
-          totalSpent={totalSpent}
-          percentSpent={totalAmount > 0 ? (totalSpent / totalAmount) * 100 : 0}
-          accentColor={accentColor}
-          currentFund={currentFund}
-          periodLabel={periodQuery === "annual" ? "Annual" : periodQuery.toUpperCase()}
-          periodKey={periodQuery}
-        />
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div>
+            <p className="text-xs font-medium text-slate-500">{periodQuery === "annual" ? "Annual" : periodQuery.toUpperCase()} Budget</p>
+            <p className="mt-1 text-xl font-bold text-slate-900">{formatCurrency(totalAmount)}</p>
+          </div>
+          <div className={`flex h-10 w-10 items-center justify-center rounded-full ${themeClasses.bgLight} ${themeClasses.text}`}>
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
 
         {/* Remaining */}
         <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -270,6 +294,30 @@ export default async function DashboardPage(props: {
             <p className="text-xs text-slate-500">{formatCurrency(totalAmount)}</p>
           </div>
         </div>
+
+        {periodQuery === "annual" && (
+          <div className="mt-8 pt-6 border-t border-slate-100">
+            <p className="text-sm font-semibold text-slate-700 mb-4">Quarterly Budget Breakdown</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p className="text-xs font-medium text-slate-500">Q1</p>
+                <p className="mt-1 font-bold text-slate-900">{formatCurrency(budget ? Number(budget.q1Amount) : 0)}</p>
+              </div>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p className="text-xs font-medium text-slate-500">Q2</p>
+                <p className="mt-1 font-bold text-slate-900">{formatCurrency(budget ? Number(budget.q2Amount) : 0)}</p>
+              </div>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p className="text-xs font-medium text-slate-500">Q3</p>
+                <p className="mt-1 font-bold text-slate-900">{formatCurrency(budget ? Number(budget.q3Amount) : 0)}</p>
+              </div>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p className="text-xs font-medium text-slate-500">Q4</p>
+                <p className="mt-1 font-bold text-slate-900">{formatCurrency(budget ? Number(budget.q4Amount) : 0)}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       </div>
     </div>

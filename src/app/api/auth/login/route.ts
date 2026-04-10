@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   }
 
   const token = await signSessionToken({ userId: user.id, username: user.username });
-  const res = NextResponse.json({ ok: true });
+  const res = NextResponse.redirect(new URL("/dashboard/profiles", req.url));
   res.cookies.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

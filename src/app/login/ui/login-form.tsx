@@ -108,7 +108,7 @@ export default function LoginForm() {
       setShowSuccess(true);
       setTimeout(() => {
         startTransition(() => {
-          router.push("/dashboard");
+          router.push("/dashboard/profiles");
           router.refresh();
         });
       }, 1500);

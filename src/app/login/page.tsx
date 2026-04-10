@@ -5,7 +5,7 @@ import LoginForm from "./ui/login-form";
 
 export default async function LoginPage() {
   const session = await getSession();
-  if (session) redirect("/dashboard");
+  if (session) redirect("/dashboard/profiles");
 
   return (
     <div className="relative flex flex-1 items-center overflow-hidden bg-slate-50 p-6">

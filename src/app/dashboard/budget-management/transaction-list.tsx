@@ -54,7 +54,22 @@ export function TransactionList({
   const [currentPage, setCurrentPage] = useState(1);
   const [transactionToCopy, setTransactionToCopy] = useState<Transaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [filterQuarter, setFilterQuarter] = useState<string>("all");
   const itemsPerPage = 5;
+
+  const filteredTransactions = transactions.filter(t => {
+    if (filterQuarter === "all") return true;
+    
+    const date = new Date(t.date);
+    const month = date.getMonth(); // 0-11
+    
+    if (filterQuarter === "q1") return month >= 0 && month <= 2;
+    if (filterQuarter === "q2") return month >= 3 && month <= 5;
+    if (filterQuarter === "q3") return month >= 6 && month <= 8;
+    if (filterQuarter === "q4") return month >= 9 && month <= 11;
+    
+    return true;
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PH", {
@@ -216,27 +231,54 @@ export function TransactionList({
         onClose={() => {
           setShowAllModal(false);
           setCurrentPage(1);
+          setFilterQuarter("all");
         }}
         title="All Transactions"
         headerRight={
-          transactions && transactions.length > 0 ? (
-            <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full border border-emerald-100 shadow-sm">
-              <span className="text-sm font-semibold">Total:</span>
-              <span className="text-base font-bold">
-                {formatCurrency(transactions.reduce((sum, t) => sum + t.amount, 0))}
-              </span>
-            </div>
-          ) : null
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mt-2 sm:mt-0 w-full sm:w-auto">
+            <select
+              value={filterQuarter}
+              onChange={(e) => {
+                setFilterQuarter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="block w-full sm:w-auto rounded-lg border-0 py-1.5 pl-3 pr-8 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-emerald-600 sm:text-sm sm:leading-6 bg-white"
+            >
+              <option value="all">All Quarters</option>
+              <option value="q1">Q1 (Jan-Mar)</option>
+              <option value="q2">Q2 (Apr-Jun)</option>
+              <option value="q3">Q3 (Jul-Sep)</option>
+              <option value="q4">Q4 (Oct-Dec)</option>
+            </select>
+
+            {filteredTransactions && filteredTransactions.length > 0 ? (
+              <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full border border-emerald-100 shadow-sm shrink-0">
+                <span className="text-sm font-semibold">Total:</span>
+                <span className="text-base font-bold">
+                  {formatCurrency(filteredTransactions.reduce((sum, t) => sum + t.amount, 0))}
+                </span>
+              </div>
+            ) : null}
+          </div>
         }
       >
         <div className="h-full w-full flex flex-col pr-2 pb-4">
           <div className="space-y-3 flex-1 overflow-y-auto min-h-[300px]">
-            {transactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((t) => {
-              const colorHex = tailwindToHex[t.categoryColor] || tailwindToHex["bg-slate-500"];
-              const totalAmount = transactions.reduce((sum, tr) => sum + tr.amount, 0);
-              const percent = totalAmount > 0 ? ((t.amount / totalAmount) * 100).toFixed(1) : "0";
+            {filteredTransactions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center h-full">
+                <svg className="h-12 w-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                </svg>
+                <p className="text-sm font-medium text-slate-600">No transactions found</p>
+                <p className="text-xs text-slate-400 mt-1">Try changing the quarter filter</p>
+              </div>
+            ) : (
+              filteredTransactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((t) => {
+                const colorHex = tailwindToHex[t.categoryColor] || tailwindToHex["bg-slate-500"];
+                const totalAmount = filteredTransactions.reduce((sum, tr) => sum + tr.amount, 0);
+                const percent = totalAmount > 0 ? ((t.amount / totalAmount) * 100).toFixed(1) : "0";
 
-              return (
+                return (
                 <div 
                   key={t.id} 
                   onClick={() => {
@@ -324,14 +366,15 @@ export function TransactionList({
                   </div>
                 </div>
               );
-            })}
+              })
+            )}
           </div>
 
           {/* Pagination Controls */}
-          {transactions.length > itemsPerPage && (
+          {filteredTransactions.length > itemsPerPage && (
             <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-4">
               <p className="text-sm text-slate-500">
-                Showing <span className="font-medium text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-slate-900">{Math.min(currentPage * itemsPerPage, transactions.length)}</span> of <span className="font-medium text-slate-900">{transactions.length}</span> results
+                Showing <span className="font-medium text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-slate-900">{Math.min(currentPage * itemsPerPage, filteredTransactions.length)}</span> of <span className="font-medium text-slate-900">{filteredTransactions.length}</span> results
               </p>
               <div className="flex gap-2">
                 <button
@@ -342,8 +385,8 @@ export function TransactionList({
                   Previous
                 </button>
                 <button
-                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(transactions.length / itemsPerPage), p + 1))}
-                  disabled={currentPage >= Math.ceil(transactions.length / itemsPerPage)}
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredTransactions.length / itemsPerPage), p + 1))}
+                  disabled={currentPage >= Math.ceil(filteredTransactions.length / itemsPerPage)}
                   className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
@@ -359,6 +402,8 @@ export function TransactionList({
         isOpen={!!transactionToCopy}
         onClose={() => setTransactionToCopy(null)}
         title="Copy Transaction"
+        maxWidth="md"
+        minHeight={false}
       >
         <div className="p-6">
           <div className="flex items-center gap-4 mb-6">
@@ -398,6 +443,8 @@ export function TransactionList({
         isOpen={!!transactionToDelete}
         onClose={() => setTransactionToDelete(null)}
         title="Delete Transaction"
+        maxWidth="md"
+        minHeight={false}
       >
         <div className="p-6">
           <div className="flex items-center gap-4 mb-6">

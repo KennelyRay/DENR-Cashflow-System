@@ -61,16 +61,33 @@ async function main() {
 
   // Seed Budgets
   const currentYear = new Date().getFullYear();
+
+  // Create a default Budget Profile
+  let defaultProfile = await prisma.budgetProfile.findUnique({
+    where: { name: 'Default Profile' }
+  });
+
+  if (!defaultProfile) {
+    defaultProfile = await prisma.budgetProfile.create({
+      data: {
+        name: 'Default Profile',
+        description: 'Automatically created default budget profile'
+      }
+    });
+    console.log(`✅ Default Budget Profile created successfully!`);
+  }
   
   await prisma.budget.upsert({
     where: {
-      fundType_year: {
+      profileId_fundType_year: {
+        profileId: defaultProfile.id,
         fundType: FundType.REGULAR,
         year: currentYear,
       }
     },
     update: {},
     create: {
+      profileId: defaultProfile.id,
       fundType: FundType.REGULAR,
       year: currentYear,
       totalAmount: 15000000.00,
@@ -79,13 +96,15 @@ async function main() {
 
   await prisma.budget.upsert({
     where: {
-      fundType_year: {
+      profileId_fundType_year: {
+        profileId: defaultProfile.id,
         fundType: FundType.COBF,
         year: currentYear,
       }
     },
     update: {},
     create: {
+      profileId: defaultProfile.id,
       fundType: FundType.COBF,
       year: currentYear,
       totalAmount: 5000000.00,
@@ -99,6 +118,7 @@ async function main() {
     await prisma.transaction.createMany({
       data: [
         {
+          profileId: defaultProfile.id,
           amount: 1250000.00,
           description: 'Payroll - January',
           type: TransactionType.EXPENSE,
@@ -107,6 +127,7 @@ async function main() {
           date: new Date(currentYear, 0, 15),
         },
         {
+          profileId: defaultProfile.id,
           amount: 350000.00,
           description: 'Office Supplies',
           type: TransactionType.EXPENSE,
@@ -115,6 +136,7 @@ async function main() {
           date: new Date(currentYear, 0, 20),
         },
         {
+          profileId: defaultProfile.id,
           amount: 2500000.00,
           description: 'New Laptops',
           type: TransactionType.EXPENSE,
@@ -124,6 +146,7 @@ async function main() {
         },
         // COBF Transactions
         {
+          profileId: defaultProfile.id,
           amount: 500000.00,
           description: 'Field Work',
           type: TransactionType.EXPENSE,
@@ -132,6 +155,7 @@ async function main() {
           date: new Date(currentYear, 0, 25),
         },
         {
+          profileId: defaultProfile.id,
           amount: 1500000.00,
           description: 'Server Upgrades',
           type: TransactionType.EXPENSE,
