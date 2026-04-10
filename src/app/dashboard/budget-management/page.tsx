@@ -92,6 +92,9 @@ export default async function BudgetManagementPage(props: {
         },
         type: TransactionType.EXPENSE,
       },
+      include: {
+        category: true,
+      },
     });
   }
 
