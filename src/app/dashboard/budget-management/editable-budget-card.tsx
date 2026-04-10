@@ -19,6 +19,7 @@ export function EditableBudgetCard({
   q2Amount,
   q3Amount,
   q4Amount,
+  annualTotal,
 }: {
   totalAmount: number;
   remaining: number;
