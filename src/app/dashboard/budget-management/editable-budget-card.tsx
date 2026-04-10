@@ -172,7 +172,13 @@ export function EditableBudgetCard({
       <div className="mt-8 space-y-4">
         <div className="flex justify-between items-end">
           <p className="text-sm text-slate-600">Remaining Budget</p>
-          <p className={`text-xl font-bold ${themeClasses.text}`}>{formatCurrency(remaining)}</p>
+          {remaining <= 0 ? (
+            <p className="text-sm font-bold text-red-600 uppercase tracking-wide">
+              {periodKey === "annual" ? "Annual" : "Quarterly"} Budget Consumed
+            </p>
+          ) : (
+            <p className={`text-xl font-bold ${themeClasses.text}`}>{formatCurrency(remaining)}</p>
+          )}
         </div>
         
         {(() => {
