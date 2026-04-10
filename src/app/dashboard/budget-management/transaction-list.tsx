@@ -139,14 +139,14 @@ export function TransactionList({
                   {t.particulars && (
                     <p className="text-xs text-slate-500 mt-0.5">{t.particulars}</p>
                   )}
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center flex-wrap gap-2 mt-2">
                     <span 
-                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase"
+                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase leading-tight max-w-full"
                       style={{ backgroundColor: `${colorHex}15`, color: colorHex }}
                     >
-                      {t.categoryName}
+                      <span className="line-clamp-2 text-left">{t.categoryName}</span>
                     </span>
-                    <span className="text-xs font-medium text-slate-400">
+                    <span className="text-xs font-medium text-slate-400 shrink-0">
                       • {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
@@ -303,14 +303,14 @@ export function TransactionList({
                     <div>
                       <p className="font-bold text-slate-900 group-hover:text-slate-700 transition-colors">{t.description}</p>
                       {t.particulars && <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 mb-1">{t.particulars}</p>}
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center flex-wrap gap-2 mt-1">
                         <span 
-                          className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase"
+                          className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase leading-tight max-w-[200px] sm:max-w-full"
                           style={{ backgroundColor: `${colorHex}15`, color: colorHex }}
                         >
-                          {t.categoryName}
+                          <span className="line-clamp-2 text-left">{t.categoryName}</span>
                         </span>
-                        <span className="text-xs font-medium text-slate-400">
+                        <span className="text-xs font-medium text-slate-400 shrink-0">
                           • {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
