@@ -32,6 +32,7 @@ export function EditableBudgetCard({
   q2Amount?: number;
   q3Amount?: number;
   q4Amount?: number;
+  annualTotal?: number;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
@@ -49,10 +50,12 @@ export function EditableBudgetCard({
     }).format(amount);
   };
 
+  const isConsumed = percentSpent >= 100;
+
   const themeClasses = {
     bgLight: currentFund === "COBF" ? "bg-emerald-100" : "bg-blue-100",
     text: currentFund === "COBF" ? "text-emerald-600" : "text-blue-600",
-    bg: currentFund === "COBF" ? "bg-emerald-500" : "bg-blue-500",
+    bg: isConsumed ? "bg-red-500" : (currentFund === "COBF" ? "bg-emerald-500" : "bg-blue-500"),
     border: currentFund === "COBF" ? "border-emerald-500" : "border-blue-500",
     ring: currentFund === "COBF" ? "focus:ring-emerald-500" : "focus:ring-blue-500",
     btn: currentFund === "COBF" ? "bg-emerald-600" : "bg-blue-600",
@@ -170,6 +173,26 @@ export function EditableBudgetCard({
           <p className="text-sm text-slate-600">Remaining Budget</p>
           <p className={`text-xl font-bold ${themeClasses.text}`}>{formatCurrency(remaining)}</p>
         </div>
+        
+        {(() => {
+          // Calculate the sum of all quarters
+          const totalAllocated = (q1Amount || 0) + (q2Amount || 0) + (q3Amount || 0) + (q4Amount || 0);
+          
+          // Use annualTotal if provided, otherwise fallback to totalAmount (if in annual view)
+          const baseAnnual = annualTotal !== undefined ? annualTotal : totalAmount;
+          const actualUnallocated = baseAnnual - totalAllocated;
+          
+          if (actualUnallocated > 0) {
+            return (
+              <div className="flex justify-between items-end">
+                <p className="text-sm text-amber-600">Unallocated Budget</p>
+                <p className="text-sm font-semibold text-amber-600">{formatCurrency(actualUnallocated)}</p>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
         <div className="flex justify-between items-end">
           <p className="text-sm text-slate-600">Total Spent</p>
           <p className="text-sm font-semibold text-slate-900">{formatCurrency(totalSpent)}</p>
@@ -207,6 +230,28 @@ export function EditableBudgetCard({
               <p className="font-semibold text-slate-900 mt-0.5">{formatCurrency(q4Amount || 0)}</p>
             </div>
           </div>
+          
+          {(() => {
+            const totalAllocated = (q1Amount || 0) + (q2Amount || 0) + (q3Amount || 0) + (q4Amount || 0);
+            const unallocated = totalAmount - totalAllocated;
+            
+            if (unallocated > 0) {
+              return (
+                <div className="mt-4 rounded-lg bg-amber-50 p-4 border border-amber-200 flex items-start gap-3">
+                  <svg className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div>
+                    <h4 className="text-sm font-semibold text-amber-800">Unallocated Budget</h4>
+                    <p className="mt-1 text-sm text-amber-700">
+                      You still have <strong>{formatCurrency(unallocated)}</strong> unallocated from your annual budget. Please allocate it to the quarters.
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
       )}
     </div>

@@ -134,6 +134,7 @@ export default async function BudgetManagementPage(props: {
               q2Amount={budget ? Number(budget.q2Amount) : 0}
               q3Amount={budget ? Number(budget.q3Amount) : 0}
               q4Amount={budget ? Number(budget.q4Amount) : 0}
+              annualTotal={budget ? Number(budget.totalAmount) : 0}
             />
 
             {/* Add Transaction Form */}

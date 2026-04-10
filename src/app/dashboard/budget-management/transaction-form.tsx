@@ -6,6 +6,7 @@ import { useRef, useState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { SuccessModal } from "../ui/success-modal";
 import { Modal } from "../modal";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 function SubmitButton({ accentColor }: { accentColor: string }) {
   const { pending } = useFormStatus();
@@ -43,6 +44,10 @@ export function TransactionForm({ categories, fundType }: { categories: Category
   const [amountDisplay, setAmountDisplay] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const accentColor = fundType === "COBF" ? "amber" : "blue";
+  
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [errorModal, setErrorModal] = useState<string | null>(null);
 
@@ -110,12 +115,30 @@ export function TransactionForm({ categories, fundType }: { categories: Category
           formData.set("amount", amountDisplay);
         }
 
+        const dateStr = formData.get("date") as string;
+        let targetQuarter = "";
+        if (dateStr) {
+          const month = new Date(dateStr).getMonth();
+          if (month >= 0 && month <= 2) targetQuarter = "q1";
+          else if (month >= 3 && month <= 5) targetQuarter = "q2";
+          else if (month >= 6 && month <= 8) targetQuarter = "q3";
+          else if (month >= 9) targetQuarter = "q4";
+        }
+
         const res = await addTransaction(formData);
         if (res?.success) {
           ref.current?.reset();
           setAmountDisplay("");
           setShowSuccess(true);
           setTimeout(() => setShowSuccess(false), 2000);
+          
+          // Switch view if we are not on annual view and the transaction is in a different quarter
+          const currentPeriod = searchParams.get("period") || "";
+          if (targetQuarter && currentPeriod !== "annual" && currentPeriod !== targetQuarter) {
+            const newParams = new URLSearchParams(searchParams.toString());
+            newParams.set("period", targetQuarter);
+            router.push(`${pathname}?${newParams.toString()}`);
+          }
         } else {
           setErrorModal(res?.error || "An error occurred");
         }
