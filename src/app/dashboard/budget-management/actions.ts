@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { FundType, TransactionType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { isValidPeriodKey, PeriodKey } from "@/lib/budget-utils";
 
 export async function addTransaction(formData: FormData) {
   const activeProfileId = (await cookies()).get("denr_active_profile")?.value;
@@ -239,9 +240,14 @@ export async function deleteTransaction(id: string) {
   }
 }
 
-export async function updateBudget(fundType: FundType, newAmountStr: string, periodKey: string = "annual") {
+export async function updateBudget(fundType: FundType, newAmountStr: string, periodKeyStr: string = "annual") {
   const activeProfileId = (await cookies()).get("denr_active_profile")?.value;
   if (!activeProfileId) return { error: "No active profile selected" };
+
+  if (!isValidPeriodKey(periodKeyStr)) {
+    return { error: "Invalid period key" };
+  }
+  const periodKey: PeriodKey = periodKeyStr as PeriodKey;
 
   const amount = parseFloat(newAmountStr.replace(/[^0-9.-]+/g, ""));
   

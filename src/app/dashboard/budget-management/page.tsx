@@ -11,6 +11,8 @@ import { PeriodToggle } from "../period-toggle";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { getAmountForPeriod, getDateRangeForPeriod, isValidPeriodKey, PeriodKey } from "@/lib/budget-utils";
+
 export default async function BudgetManagementPage(props: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
@@ -26,14 +28,17 @@ export default async function BudgetManagementPage(props: {
 
   // Calculate current quarter dynamically
   const currentMonth = new Date().getMonth();
-  let defaultQuarter = "q1";
+  let defaultQuarter: PeriodKey = "q1";
   if (currentMonth >= 3 && currentMonth <= 5) defaultQuarter = "q2";
   else if (currentMonth >= 6 && currentMonth <= 8) defaultQuarter = "q3";
   else if (currentMonth >= 9) defaultQuarter = "q4";
 
-  const periodQuery = searchParams?.period as string || defaultQuarter;
+  const periodQueryStr = searchParams?.period as string || defaultQuarter;
+  const periodQuery: PeriodKey = isValidPeriodKey(periodQueryStr) ? periodQueryStr : defaultQuarter;
   const isQuarterly = periodQuery !== "annual";
   
+  const { startDate, endDate } = getDateRangeForPeriod(currentYear, periodQuery);
+
   const budget = await prisma.budget.findUnique({
     where: {
       profileId_fundType_year: {
@@ -44,29 +49,7 @@ export default async function BudgetManagementPage(props: {
     },
   });
 
-  const fullBudget = budget ? Number(budget.totalAmount) : 0;
-  let totalAmount = fullBudget;
-  
-  if (periodQuery === "q1") totalAmount = budget ? Number(budget.q1Amount) : 0;
-  else if (periodQuery === "q2") totalAmount = budget ? Number(budget.q2Amount) : 0;
-  else if (periodQuery === "q3") totalAmount = budget ? Number(budget.q3Amount) : 0;
-  else if (periodQuery === "q4") totalAmount = budget ? Number(budget.q4Amount) : 0;
-
-  let startDate = new Date(currentYear, 0, 1);
-  let endDate = new Date(currentYear + 1, 0, 1);
-
-  if (periodQuery === "q1") {
-    endDate = new Date(currentYear, 3, 1);
-  } else if (periodQuery === "q2") {
-    startDate = new Date(currentYear, 3, 1);
-    endDate = new Date(currentYear, 6, 1);
-  } else if (periodQuery === "q3") {
-    startDate = new Date(currentYear, 6, 1);
-    endDate = new Date(currentYear, 9, 1);
-  } else if (periodQuery === "q4") {
-    startDate = new Date(currentYear, 9, 1);
-    endDate = new Date(currentYear + 1, 0, 1);
-  }
+  const totalAmount = getAmountForPeriod(budget, periodQuery);
 
   const transactions = await prisma.transaction.findMany({
     where: {
