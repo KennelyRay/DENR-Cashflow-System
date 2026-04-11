@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "DENR-CASHFLOW-SYSTEM",
   description: "DENR Cashflow and Budget Management System",
+  icons: {
+    icon: "/denr-logo.png",
+    apple: "/denr-logo.png",
+  },
 };
 
 export default function RootLayout({
