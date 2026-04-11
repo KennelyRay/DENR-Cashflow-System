@@ -9,13 +9,13 @@ export default function Header({
   activeProfile: BudgetProfile | null;
 }) {
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6 relative z-10">
       <div className="flex items-center gap-4">
         {/* Mobile menu button could be added here in the future */}
         {activeProfile && (
-          <div className="flex flex-col lg:hidden">
+          <div className="flex flex-col lg:hidden pl-12">
             <span className="text-xs font-medium text-slate-500">PaP Profile</span>
-            <span className="text-sm font-bold text-slate-900">{activeProfile.name}</span>
+            <span className="text-sm font-bold text-slate-900 line-clamp-1">{activeProfile.name}</span>
           </div>
         )}
       </div>
