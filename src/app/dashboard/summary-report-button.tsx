@@ -195,81 +195,93 @@ export function SummaryReportButton({
           ) : (
             // ================== ELECTRONIC / MOBILE VIEW ==================
             <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shrink-0">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                <div className="text-center mb-6 border-b border-slate-200 pb-6 flex flex-col items-center">
+                  <div className="mb-3">
                     <img 
                       src="/denr-logo.png" 
                       alt="DENR Logo" 
-                      className="w-8 h-8 object-contain"
-                      onError={(e) => e.currentTarget.style.display = 'none'}
+                      className="w-16 h-16 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement!.innerHTML = '<div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200"><span class="text-xs font-bold text-slate-500">DENR</span></div>';
+                      }}
                     />
                   </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-slate-900">{profileName}</h2>
-                    <p className="text-sm text-slate-500 font-medium">
-                      {fundType === "COBF" ? "Continuing Budget Fund" : "Regular Budget"} • {periodQuery === "annual" ? "Annual" : periodQuery.toUpperCase()}
-                    </p>
-                  </div>
+                  <h1 className="text-lg sm:text-xl font-extrabold uppercase tracking-widest text-slate-900">Cashflow Summary</h1>
+                  <p className="text-slate-600 mt-1 text-xs sm:text-sm font-medium">
+                    {profileName}
+                  </p>
+                  <p className="text-slate-500 mt-0.5 text-[10px] sm:text-xs">
+                    {fundType === "COBF" ? "Continuing Budget Fund" : "Regular Budget"} • {periodQuery === "annual" ? "Annual" : periodQuery.toUpperCase()}
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-6 border-t border-slate-100 pt-6">
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium mb-1">Total Budget</p>
-                    <p className="text-lg font-bold text-slate-900">{formatCurrency(totalBudget)}</p>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Total Budget</p>
+                    <p className="text-sm font-bold text-slate-900">{formatCurrency(totalBudget)}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium mb-1">Remaining</p>
-                    <p className="text-lg font-bold text-emerald-600">{formatCurrency(remaining)}</p>
+                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Remaining</p>
+                    <p className="text-sm font-bold text-emerald-600">{formatCurrency(remaining)}</p>
                   </div>
-                  <div className="col-span-2 bg-slate-50 p-3 rounded-xl mt-2">
+                  <div className="col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
                     <div className="flex justify-between items-center">
-                      <p className="text-xs text-slate-500 font-medium">Total Spent</p>
-                      <p className="text-base font-bold text-red-600">{formatCurrency(totalSpent)}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Total Spent</p>
+                      <p className="text-sm font-bold text-red-600">{formatCurrency(totalSpent)}</p>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {sortedCategories.length === 0 ? (
-                <div className="bg-white rounded-2xl p-8 text-center text-slate-500 border border-slate-200 shadow-sm">
-                  No transactions found for this period.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-slate-900 px-2 uppercase tracking-wider">Breakdown by Category</h3>
-                  
-                  {sortedCategories.map(([catName, data]) => (
-                    <div key={catName} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
-                      <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center gap-4">
-                        <h4 className="font-bold text-slate-800 text-sm line-clamp-2">{catName}</h4>
-                        <span className="font-bold text-slate-900 whitespace-nowrap">{formatCurrency(data.amount)}</span>
-                      </div>
-                      
-                      <div className="divide-y divide-slate-100">
-                        {data.items.map(t => (
-                          <div key={t.id} className="p-4 hover:bg-slate-50 transition-colors">
-                            <div className="flex justify-between items-start gap-4">
-                              <div>
-                                <p className="text-sm font-semibold text-slate-900">{t.description}</p>
-                                {t.particulars && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{t.particulars}</p>}
-                                <p className="text-xs font-medium text-slate-400 mt-2">
-                                  {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                </p>
+                {sortedCategories.length === 0 ? (
+                  <div className="text-center text-slate-500 py-6 italic border-t border-slate-100">
+                    No transactions found.
+                  </div>
+                ) : (
+                  <div className="space-y-6 border-t border-slate-100 pt-6">
+                    {sortedCategories.map(([catName, data]) => (
+                      <div key={catName}>
+                        <div className="flex justify-between items-end border-b border-slate-300 pb-1.5 mb-2">
+                          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">{catName}</h3>
+                          <p className="text-xs font-bold text-slate-900">{formatCurrency(data.amount)}</p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {data.items.map(t => (
+                            <div key={t.id} className="flex justify-between items-start gap-2 py-1">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-slate-900 truncate">{t.description}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-[10px] text-slate-400">
+                                    {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
+                                  </span>
+                                  {t.particulars && (
+                                    <span className="text-[10px] text-slate-500 truncate">
+                                      • {t.particulars}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              <span className="text-sm font-bold text-slate-700 whitespace-nowrap shrink-0">
+                              <span className="text-xs font-semibold text-slate-700 whitespace-nowrap shrink-0 pt-0.5">
                                 {formatCurrency(t.amount)}
                               </span>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                )}
+                
+                <div className="mt-8 pt-4 border-t border-slate-200 text-center text-[10px] text-slate-400">
+                  Generated electronically on {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                 </div>
-              )}
+              </div>
             </div>
           )}
+        </div>
+      </Modal>
         </div>
       </Modal>
     </>
