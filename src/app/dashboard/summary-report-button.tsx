@@ -282,8 +282,6 @@ export function SummaryReportButton({
           )}
         </div>
       </Modal>
-        </div>
-      </Modal>
     </>
   );
 }
