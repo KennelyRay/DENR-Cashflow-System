@@ -199,6 +199,7 @@ export default async function BudgetManagementPage(props: {
               }))}
               categories={categories}
               accentColor={accentColor}
+              periodKey={periodQuery}
             />
           </div>
 

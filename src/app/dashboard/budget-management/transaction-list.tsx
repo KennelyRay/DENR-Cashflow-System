@@ -41,10 +41,12 @@ export function TransactionList({
   transactions,
   categories,
   accentColor,
+  periodKey = "annual",
 }: {
   transactions: Transaction[];
   categories: Category[];
   accentColor: string;
+  periodKey?: string;
 }) {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -54,10 +56,11 @@ export function TransactionList({
   const [currentPage, setCurrentPage] = useState(1);
   const [transactionToCopy, setTransactionToCopy] = useState<Transaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
-  const [filterQuarter, setFilterQuarter] = useState<string>("all");
+  const [filterQuarter, setFilterQuarter] = useState<string>(periodKey !== "annual" ? periodKey : "all");
   const itemsPerPage = 5;
 
   const filteredTransactions = transactions.filter(t => {
+    if (periodKey !== "annual") return true; // If already on a quarter view, show all passed transactions (which are already filtered by that quarter)
     if (filterQuarter === "all") return true;
     
     const date = new Date(t.date);
@@ -231,25 +234,27 @@ export function TransactionList({
         onClose={() => {
           setShowAllModal(false);
           setCurrentPage(1);
-          setFilterQuarter("all");
+          setFilterQuarter(periodKey !== "annual" ? periodKey : "all");
         }}
-        title="All Transactions"
+        title={periodKey === "annual" ? "All Transactions" : `All Transactions for ${periodKey.toUpperCase()}`}
         headerRight={
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mt-2 sm:mt-0 w-full sm:w-auto">
-            <select
-              value={filterQuarter}
-              onChange={(e) => {
-                setFilterQuarter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="block w-full sm:w-auto rounded-lg border-0 py-1.5 pl-3 pr-8 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-emerald-600 sm:text-sm sm:leading-6 bg-white"
-            >
-              <option value="all">All Quarters</option>
-              <option value="q1">Q1 (Jan-Mar)</option>
-              <option value="q2">Q2 (Apr-Jun)</option>
-              <option value="q3">Q3 (Jul-Sep)</option>
-              <option value="q4">Q4 (Oct-Dec)</option>
-            </select>
+            {periodKey === "annual" && (
+              <select
+                value={filterQuarter}
+                onChange={(e) => {
+                  setFilterQuarter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="block w-full sm:w-auto rounded-lg border-0 py-1.5 pl-3 pr-8 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-emerald-600 sm:text-sm sm:leading-6 bg-white"
+              >
+                <option value="all">All Quarters</option>
+                <option value="q1">Q1 (Jan-Mar)</option>
+                <option value="q2">Q2 (Apr-Jun)</option>
+                <option value="q3">Q3 (Jul-Sep)</option>
+                <option value="q4">Q4 (Oct-Dec)</option>
+              </select>
+            )}
 
             {filteredTransactions && filteredTransactions.length > 0 ? (
               <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full border border-emerald-100 shadow-sm shrink-0">
