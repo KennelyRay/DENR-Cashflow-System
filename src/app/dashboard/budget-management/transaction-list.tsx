@@ -377,7 +377,7 @@ export function TransactionList({
 
           {/* Pagination Controls */}
           {filteredTransactions.length > itemsPerPage && (
-            <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-100 pt-4 mt-4 gap-4 pb-2">
               <p className="text-sm text-slate-500">
                 Showing <span className="font-medium text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-slate-900">{Math.min(currentPage * itemsPerPage, filteredTransactions.length)}</span> of <span className="font-medium text-slate-900">{filteredTransactions.length}</span> results
               </p>
