@@ -124,8 +124,9 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
                   ))}
                 </Pie>
                 <PieTooltip
-                  formatter={(value: any) => formatCurrency(Number(value) || 0)}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  formatter={(value: any) => [<span className="text-slate-900 font-bold">{formatCurrency(Number(value) || 0)}</span>, "value"]}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  itemStyle={{ color: '#0f172a' }}
                 />
                 <Legend 
                   verticalAlign="bottom" 
@@ -168,9 +169,10 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
                   width={60}
                 />
                 <BarTooltip
-                  formatter={(value: any) => formatCurrency(Number(value) || 0)}
+                  formatter={(value: any) => [<span className="text-slate-900 font-bold">{formatCurrency(Number(value) || 0)}</span>, "value"]}
                   cursor={{ fill: '#f1f5f9' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  itemStyle={{ color: '#0f172a' }}
                 />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                   {chartData.map((entry, index) => (
@@ -211,8 +213,9 @@ export function DashboardCharts({ data, dailyData, trendLabel = "Spending Trend"
                   width={60}
                 />
                 <LineTooltip
-                  formatter={(value: any) => formatCurrency(Number(value) || 0)}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  formatter={(value: any) => [<span className="text-slate-900 font-bold">{formatCurrency(Number(value) || 0)}</span>, "value"]}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  itemStyle={{ color: '#0f172a' }}
                 />
                 <Line 
                   type="monotone" 
