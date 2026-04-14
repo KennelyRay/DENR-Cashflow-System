@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "./ui/sidebar";
 import Header from "./ui/header";
+import SessionTimeout from "./ui/session-timeout";
 
 export default async function DashboardLayout({
   children,
@@ -27,6 +28,7 @@ export default async function DashboardLayout({
       <Sidebar activeProfile={activeProfile} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header user={session} activeProfile={activeProfile} />
+        <SessionTimeout />
         <main className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
