@@ -56,8 +56,8 @@ export function SummaryReportButton({
   const sortedCategories = Object.entries(categorized).sort((a, b) => b[1].amount - a[1].amount);
 
   const themeBtn = accentColor === "emerald" 
-    ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200" 
-    : "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200";
+    ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20 dark:border-emerald-500/20" 
+    : "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20 dark:border-blue-500/20";
 
   const [viewMode, setViewMode] = useState<"document" | "electronic">("document");
 
