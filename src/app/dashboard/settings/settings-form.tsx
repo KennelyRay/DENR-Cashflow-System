@@ -30,10 +30,52 @@ function SubmitButton() {
 export function SettingsForm({ initialUsername }: { initialUsername: string }) {
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
+    return document.documentElement.classList.contains("dark") ? "dark" : "light";
+  });
   const router = useRouter();
+
+  const applyTheme = (next: "light" | "dark") => {
+    setTheme(next);
+    if (typeof window !== "undefined") {
+      document.documentElement.classList.toggle("dark", next === "dark");
+      localStorage.setItem("denr_theme", next);
+    }
+  };
 
   return (
     <>
+      <div className="mb-8">
+        <div className="border-b border-slate-200 pb-4">
+          <h3 className="text-base font-semibold leading-7 text-slate-900">Appearance</h3>
+          <p className="mt-1 text-sm leading-6 text-slate-500">Choose how the application looks on your device.</p>
+        </div>
+
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div className="text-sm font-medium text-slate-900">Dark mode</div>
+            <div className="text-xs text-slate-500">Switch between light and dark theme.</div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => applyTheme(theme === "dark" ? "light" : "dark")}
+            className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+            aria-pressed={theme === "dark"}
+          >
+            <span className="text-xs font-semibold">{theme === "dark" ? "On" : "Off"}</span>
+            <span
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${theme === "dark" ? "bg-emerald-600" : "bg-slate-200"}`}
+            >
+              <span
+                className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${theme === "dark" ? "translate-x-5" : "translate-x-1"}`}
+              />
+            </span>
+          </button>
+        </div>
+      </div>
+
       <form
         action={async (formData) => {
           setError(null);
